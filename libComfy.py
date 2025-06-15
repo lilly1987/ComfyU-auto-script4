@@ -1,6 +1,6 @@
 import os, sys, glob, json, random, time, copy, string, re
 
-from libPrint import print, console
+from libPrint import *
 from rich.progress import Progress
 from urllib import request , error
 from urllib.error import URLError, HTTPError

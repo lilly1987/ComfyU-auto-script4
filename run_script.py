@@ -67,7 +67,7 @@ class MyClass():
         if self.configYml.get("queue_prompt_wait",True):
             queue_prompt_wait(url=self.configYml.get('url'))
         else:
-            printGreen(" queue_prompt_wait : ",self.configYml.get("queue_prompt_wait",True))   
+            printInfo(" queue_prompt_wait : ",self.configYml.get("queue_prompt_wait",True))   
         # -------------------------
         return False
 
@@ -104,7 +104,7 @@ class MyClass():
                 self.CheckpointName=RandomWeightCnt(self.WeightCheckpoint)[0]
             else:
                 self.CheckpointName=random.choice(self.CheckpointFileNames)
-                print('[yellow] no WeightCheckpoint [/yellow]')  
+                printWarn('no WeightCheckpoint ')  
 
         else:            
             self.SubCheckpoint = [x for x in self.CheckpointFileNames if x not in self.WeightCheckpoint.keys()]
@@ -115,14 +115,14 @@ class MyClass():
                 self.CheckpointName=random.choice(self.SubCheckpoint)
             else:
                 self.CheckpointName=random.choice(self.CheckpointFileNames)
-                print('[yellow] no SubCheckpoint [/yellow]')      
+                printWarn('no WeightCheckpoint ')  
 
         print('self.CheckpointName : ',(self.CheckpointName))     
         self.CheckpointPath=  self.CheckpointFileDics.get(self.CheckpointName)
         print('self.CheckpointPath : ',(self.CheckpointPath))     
         
     def CharChange(self):
-        print('[green] CharChange start [green]')
+        printInfo('CharChange start')
 
         CharWeightPer=self.configYml.get('CharWeightPer',0.5)
         print('CharWeightPer : ',CharWeightPer)
@@ -747,10 +747,11 @@ class MyClass():
                 os._exit(130)
         except Exception:
             console.print_exception(show_locals=True) 
+            tm=time.strftime('%Y%m%d-%H%M%S')
+            console.save_text(f'./console.{tm}.log')
 
         finally:
-            print('[green] === finally === [green]')
-            console.save_text('./console.log')
+            printInfo(' === finally === ')
             
 
 

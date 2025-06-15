@@ -9,19 +9,30 @@ if missing:
     subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
     
 #-------------------------
+import inspect
 from rich.console import Console
 console = Console(record=True)
-
 print=console.log
+from rich.console import Console
 
-printColor=lambda msg,c,*a:print(f'[{c}] {msg} [/{c}]',*a ) 
-printYellow=lambda msg,*a: printColor(msg,'yellow',*a)
-printWarn=lambda msg,*a: printYellow(msg,*a)
-printRed=lambda msg,*a: printColor(msg,'red',*a)
-printErr=lambda msg,*a: printRed(msg,*a)
-printGreen=lambda msg,*a: printColor(msg,'green',*a)
-printInfo=lambda msg,*a: printGreen(msg,*a)
+console = Console(record=True)
+print = console.log
+
+printColor = lambda msg, c, *a,_stack_offset=2: print(f'[{c}]{msg}[/{c}]', *a, _stack_offset=_stack_offset)
+#printColor = lambda msg, c, *a: print(f'[{c}] {msg} [/{c}]',*a, stack_offset=1 ) 
+printYellow=lambda msg,*a: printColor(msg,'yellow',*a, _stack_offset=3)
+printWarn=printYellow
+printRed=lambda msg,*a: printColor(msg,'red',*a, _stack_offset=3)
+printErr=printRed
+printGreen=lambda msg,*a: printColor(msg,'green',*a, _stack_offset=3)
+printInfo=printGreen
 #printWarn('tset',{'test':'test'})
+
+# def printColor(msg, color, *args):
+#     frame = inspect.stack()[1]
+#     filename = frame.filename
+#     lineno = frame.lineno
+#     console.log(f"[{color}]{msg} [/{color}]  (line {lineno} in {filename})", *args)
 #-------------------------
 import logging
 import logging.handlers
