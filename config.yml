@@ -1,0 +1,30 @@
+dataPath: ../ComfyU-auto-script_data
+CheckpointPath: ../ComfyUI/models/checkpoints
+LoraPath: ../ComfyUI/models/Loras
+LoraCharPath: char
+LoraEtcPath: etc
+safetensorsFile: '*.safetensors'
+setupFile: setupFile.yml
+url: http://127.0.0.1:8188/prompt
+workflow_api: workflow_api.json
+#sleep: 1
+CheckpointTypes: # RandomWeight , Only List or Dict
+  IL: 2
+  #Pony: 1
+#  Noob: 1
+CheckpointLoop: 1
+CharLoop: 1
+LoraLoop: 1
+queueLoop: 1
+CheckpointWeightPer: 0.05
+CharWeightPer: 0.5
+queue_prompt_wait: false
+queue_prompt: false
+# --------- print -----------
+#checkpointYmlPrint: True
+#loraYmlPrint: True
+#setupWorkflowPrint: True
+#setupWildcardPrint: True
+#LoraChangeNoPrint: True
+#WorkflowPrint: True
+# --------- print -----------
