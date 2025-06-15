@@ -20,6 +20,9 @@ CheckpointWeightPer: 0.05
 CharWeightPer: 0.5
 queue_prompt_wait: false
 queue_prompt: false
+shuffleWildcard:
+- False
+- True
 # --------- print -----------
 #checkpointYmlPrint: True
 #loraYmlPrint: True
