@@ -10,6 +10,9 @@ def RandomWeightCnt(d={},cnt=1,k=[]):
     k값은 사전형이 아닐때 받을값.    
     """
     if isinstance(d,dict):
+        for k,v in d.items():
+            if not isinstance(v,( int,float)):
+                raise TypeError(f'{k} : {v}')
         return random.choices(list(d.keys()),weights=list(d.values()),k=cnt)
     return k
 

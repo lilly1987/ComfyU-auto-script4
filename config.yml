@@ -12,17 +12,18 @@ CheckpointTypes: # RandomWeight , Only List or Dict
   IL: 2
   #Pony: 1
 #  Noob: 1
-CheckpointLoop: 1
-CharLoop: 1
-LoraLoop: 1
-queueLoop: 1
+CheckpointLoop: 6
+CharLoop: 3
+#LoraLoop: 3
+queueLoop: 3
 CheckpointWeightPer: 0.05
 CharWeightPer: 0.5
-queue_prompt_wait: false
-queue_prompt: false
 shuffleWildcard:
 - False
 - True
+# --------- queue -----------
+#queue_prompt_wait: false
+#queue_prompt: false
 # --------- print -----------
 #checkpointYmlPrint: True
 #loraYmlPrint: True
@@ -30,4 +31,4 @@ shuffleWildcard:
 #setupWildcardPrint: True
 #LoraChangeNoPrint: True
 #WorkflowPrint: True
-# --------- print -----------
+# ---------  -----------
