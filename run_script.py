@@ -377,17 +377,34 @@ class MyClass():
         )
         if self.configYml.get("setupWorkflowPrint",False):
             print('self.setupWorkflow : ',self.setupWorkflow)           
+        #print('self.setupWorkflow : ',self.setupWorkflow)           
 
-    def SetSetupWorkflow(self,c, l,r=None,f=None ): 
-        for k in l:
-            v=self.WorkflowGet(c,k) 
-            v=Get(self.setupWorkflow,v,'workflow',c,k) 
-            if f:
-                v=f(self, v, k)
-            if r:
-                v=r(v)
+    def SetSetupWorkflow(self,node, list,randonFunc=None,func=None ): 
+        for k in list:
+            v=self.WorkflowGet(node,k) 
+            #print('SetSetupWorkflow1',node,k,v)    
+            v=Get(self.setupWorkflow,v,'workflow',node,k) 
+            #print('SetSetupWorkflow1',node,k,v)    
+            if func:
+                v=func(self, v, k)
+            #print('SetSetupWorkflow4',node,k,v)    
+            if randonFunc:
+                v=randonFunc(v)
+            #print('SetSetupWorkflow5',node,k,v)    
+            s=Get(self.setupWorkflow,None,'workflow_scale',node,k) 
+            if s:
+                s=RandomMinMax(s)
+                #print('SetSetupWorkflow2',node,k,v,s)    
+                v*=s
+                #print('SetSetupWorkflow2',node,k,v,s)    
+            m=Get(self.setupWorkflow,None,'workflow_min',node,k) 
+            if m:
+                m=RandomMinMax(m)
+                #print('SetSetupWorkflow3',node,k,v,m)    
+                v=max(v,m)
+                #print('SetSetupWorkflow3',node,k,v,m)
             #print(c,k,v)           
-            self.WorkflowSet(c,k,v)
+            self.WorkflowSet(node,k,v)
 
     def SetWorkflowSet(self,node, list,func=None,randonFunc=None ): 
         for k in list:
@@ -414,16 +431,13 @@ class MyClass():
 
 
     def SetFaceDetailer(self):
-        self.WorkflowSet('FaceDetailer','seed',SeedInt())
-        checkpointYml=lambda obj, v, k: Get(obj.dicCheckpointYml, v, obj.CheckpointName, k)            
+        self.WorkflowSet('FaceDetailer','seed',SeedInt())          
         l=GetTypeList(self.workflow_api.get('FaceDetailer').get("inputs"),(int,  float),(bool,))
         #print('FaceDetailer l : ',l)
-        self.SetSetupWorkflow('FaceDetailer',
-                            l,
-                            RandomMinMax,checkpointYml)
+        self.SetSetupWorkflow('FaceDetailer',l,RandomMinMax)
         l=GetTypeList(self.workflow_api.get('FaceDetailer').get("inputs"),(str,  bool))
         #print('FaceDetailer l : ',l)
-        self.SetSetupWorkflow('FaceDetailer',l,RandomWeight,checkpointYml)
+        self.SetSetupWorkflow('FaceDetailer',l,RandomWeight)
         
     def SetKSampler(self):
         self.WorkflowSet('KSampler','seed',SeedInt())
@@ -434,21 +448,6 @@ class MyClass():
         l=GetTypeList(self.workflow_api.get('KSampler').get("inputs"),(str,  bool))
         self.SetSetupWorkflow('KSampler',l,RandomWeight,checkpointYml)
         
-        # for k in ['steps','cfg','denoise' ]:
-        #     v=self.WorkflowGet('KSampler',k) 
-        #     v=Get(self.setupWorkflow,v,'workflow','KSampler',k) 
-        #     v=Get(self.dicCheckpointYml,v,self.CheckpointName,k) 
-        #     v=RandomMinMax(v)
-        #     print('KSampler',k,v)           
-        #     self.WorkflowSet('KSampler',k,v)
-
-        # for k in [ 'sampler_name','scheduler']:
-        #     v=self.WorkflowGet('KSampler',k) 
-        #     v=Get(self.setupWorkflow,v,'workflow','KSampler',k) 
-        #     v=Get(self.dicCheckpointYml,v,self.CheckpointName,k) 
-        #     v=RandomWeight(v)
-        #     print('KSampler',k,v)           
-        #     self.WorkflowSet('KSampler',k,v)
 
         #print(self.workflow_api)
 
@@ -459,12 +458,6 @@ class MyClass():
     def SetVAELoader(self): 
         l=GetTypeList(self.workflow_api.get('VAELoader').get("inputs"),(int,  float),(bool,))   
         self.SetSetupWorkflow('VAELoader',l,RandomMinMax)
-        # for k in ['width','height','batch_size' ]:
-        #     v=self.WorkflowGet('EmptyLatentImage',k) 
-        #     v=Get(self.setupWorkflow,v,'workflow','EmptyLatentImage',k) 
-        #     v=RandomMinMax(v)
-        #     print('EmptyLatentImage',k,v)           
-        #     self.WorkflowSet('EmptyLatentImage',k,v)
 
     def SetSaveImage(self): 
         tm=time.strftime('%Y%m%d-%H%M%S')
