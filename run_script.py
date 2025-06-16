@@ -86,6 +86,7 @@ class MyClass():
     Checkpoint 파일 목록
     WeightCheckpoint.yml 가져오기
     Checkpoint 뽑음
+    CheckpointWeightPer 확률로 뽑음
     '''
     def CheckpointChange(self):
         print('[green] CheckpointChange start [green]')
@@ -136,50 +137,54 @@ class MyClass():
     Char 파일 목록
     WeightChar.yml 가져오기
     Char 뽑음
+    CharWeightPer 확률로 뽑음
     '''
     def CharChange(self):
         printInfo('CharChange start')
-
-        CharWeightPer=self.configYml.get('CharWeightPer',0.5)
-        print('CharWeightPer : ',CharWeightPer)
 
         self.CharFileDics,\
         self.CharFileLists,\
         self.CharFileNames=\
             GetFileDicList( 
             Path(self.CheckpointType,self.configYml.get('LoraCharPath','char'),self.configYml.get('safetensorsFile')) , 
-            self.configYml.get('LoraPath'))
-        
+            self.configYml.get('LoraPath'))        
         # print('self.CharFileDics : ',(self.CharFileDics))
         print('self.CharFileDics : ',len(self.CharFileDics))
 
-        self.WeightChar=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightChar.yml")) 
+        noCharPer=self.configYml.get('noCharPer',0.5)
+        if noCharPer>random.random():
+            self.noChar=True
+            self.CharName='noChar'
+            self.CharPath=self.CharFileLists[0]
+            print('noCharPer : ',self.CharPath)  
+        else:
+            self.WeightChar=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightChar.yml")) 
+            self.WeightChar = {key: self.WeightChar[key] for key in self.CharFileNames if key in self.WeightChar}
+            print('self.WeightChar : ',len(self.WeightChar)) 
 
-        self.WeightChar = {key: self.WeightChar[key] for key in self.CharFileNames if key in self.WeightChar}
+            CharWeightPer=self.configYml.get('CharWeightPer',0.5)
+            print('CharWeightPer : ',CharWeightPer)
+            if CharWeightPer>random.random():
+                if len(self.WeightChar)>0:
+                    self.CharName=RandomWeightCnt(self.WeightChar)[0]
+                else:
+                    print('[yellow] no WeightChar [/yellow]')       
+                    self.CharName=random.choice(self.CharFileNames)
 
-        print('self.WeightChar : ',len(self.WeightChar)) 
+            else:            
+                self.SubChar = [x for x in self.CharFileNames if x not in self.WeightChar.keys()]
 
-        if CharWeightPer>random.random():
-            if len(self.WeightChar)>0:
-                self.CharName=RandomWeightCnt(self.WeightChar)[0]
-            else:
-                print('[yellow] no WeightChar [/yellow]')       
-                self.CharName=random.choice(self.CharFileNames)
+                print('self.SubChar : ',len(self.SubChar))
 
-        else:            
-            self.SubChar = [x for x in self.CharFileNames if x not in self.WeightChar.keys()]
+                if len(self.SubChar)>0:
+                    self.CharName=random.choice(self.SubChar)
+                else:
+                    print('[yellow] no SubChar [/yellow]')       
+                    self.CharName=random.choice(self.CharFileNames)
 
-            print('self.SubChar : ',len(self.SubChar))
-
-            if len(self.SubChar)>0:
-                self.CharName=random.choice(self.SubChar)
-            else:
-                print('[yellow] no SubChar [/yellow]')       
-                self.CharName=random.choice(self.CharFileNames)
-
-        print('self.CharName : ',(self.CharName))  
-        self.CharPath=  self.CharFileDics.get(self.CharName)     
-        print('self.CharPath : ',(self.CharPath))  
+            print('self.CharName : ',self.CharName)  
+            self.CharPath=  self.CharFileDics.get(self.CharName)     
+            print('self.CharPath : ',self.CharPath)  
 
     ''' 
     Lora 파일 목록
@@ -539,8 +544,9 @@ class MyClass():
             random.shuffle(lnegative)
         positiveWildcard=",".join(lpositive)
         negativeWildcard=",".join(lnegative)
-        # print('positiveWildcard : ',positiveWildcard)
-        # print('negativeWildcard : ',negativeWildcard)
+        if self.configYml.get("setWildcardPrint",False):
+            printInfo('positiveWildcard : ',positiveWildcard)
+            printInfo('negativeWildcard : ',negativeWildcard)
         self.SetWorkflow('positiveWildcard','wildcard_text',positiveWildcard) 
         self.SetWorkflow('negativeWildcard','wildcard_text',negativeWildcard) 
         self.SetWorkflow('positiveWildcard','seed',SeedInt()) 
@@ -649,19 +655,24 @@ class MyClass():
         #print('LoraLoader lora_name : ',r)
         self.SetWorkflow('LoraLoader','seed',SeedInt()) 
 
+        if self.noChar:
+            self.SetWorkflow('LoraLoader','strength_model',0.0)
+            self.SetWorkflow('LoraLoader','strength_clip',0.0)
+            tive=self.configYml.get('noCharWildcard',{})
+        else:
         #ld=lambda obj, k: Get(obj.dicLoraYml,Get(obj.setupWorkflow, None, 'charDefult', k),obj.CharName,k)
-        self.SetWorkflowFuncRandom('LoraLoader', 
-            ['strength_model','strength_clip','A','B'],
-            self.SetCharSub,
-            RandomMinMax
-            )
-        self.SetWorkflowFuncRandom('LoraLoader', 
-            ['preset','block_vector'],
-            self.SetCharSub,
-            RandomWeight
-            )
+            self.SetWorkflowFuncRandom('LoraLoader', 
+                ['strength_model','strength_clip','A','B'],
+                self.SetCharSub,
+                RandomMinMax
+                )
+            self.SetWorkflowFuncRandom('LoraLoader', 
+                ['preset','block_vector'],
+                self.SetCharSub,
+                RandomWeight
+                )
+            tive=Get(self.dicLoraYml,None,self.CharName)
         
-        tive=Get(self.dicLoraYml,None,self.CharName)
         self.SetTive('Char',tive)
 
         # positive=Get(self.dicLoraYml,None,self.CharName,'positive')

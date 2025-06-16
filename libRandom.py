@@ -1,5 +1,6 @@
 import random
 from libPrint import *
+from itertools import islice
 
 def RandomWeightCnt(d={},cnt=1,k=[]):
     """
@@ -40,11 +41,12 @@ def RandomWeight(i):
         r=random.choices(list(i.keys()),weights=list(i.values()),k=1)[0]
     return r  
 
-def RandomdicWeight(d,w,c=1,result=[]):
-    t={k: v[w] for k, v in d.items() if w in v}
-    #print(v)
-    result=random.choices(list(t.keys()),weights=list(t.values()),k=c )
-    #print(result)
+def RandomdicWeight(d, w, c=1, result=[]):
+    t = {k: v[w] for k, v in d.items() if w in v}
+    if not t:
+        printErr("RandomdicWeight err: ", dict(islice(d, 3)), w, c)
+        return result
+    result = random.choices(list(t.keys()), weights=list(t.values()), k=c)
     return result
 
 def SeedInt():

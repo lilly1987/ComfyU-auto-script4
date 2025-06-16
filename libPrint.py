@@ -34,6 +34,7 @@ printInfo=printGreen
 #     lineno = frame.lineno
 #     console.log(f"[{color}]{msg} [/{color}]  (line {lineno} in {filename})", *args)
 #-------------------------
+import time
 import logging
 import logging.handlers
 from rich.logging import RichHandler
