@@ -18,8 +18,8 @@ from rich.console import Console
 console = Console(record=True)
 print = console.log
 
-printColor = lambda msg, c, *a,_stack_offset=2: print(f'[{c}]{msg}[/{c}]', *a, _stack_offset=_stack_offset)
-#printColor = lambda msg, c, *a: print(f'[{c}] {msg} [/{c}]',*a, stack_offset=1 ) 
+def printColor(msg, c, *a, _stack_offset=2):
+    print(f'[{c}]{msg}[/{c}]', *a, _stack_offset=_stack_offset)
 printYellow=lambda msg,*a: printColor(msg,'yellow',*a, _stack_offset=3)
 printWarn=printYellow
 printRed=lambda msg,*a: printColor(msg,'red',*a, _stack_offset=3)
@@ -46,7 +46,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rich")
 
-file_handler = logging.FileHandler('logger.log', mode="a", encoding="utf-8")
+tm=time.strftime('%Y%m%d-%H%M%S')
+file_handler = logging.FileHandler(f'logger.{tm}.log', mode="a", encoding="utf-8")
 file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(filename)s:%(funcName)s:%(lineno)4s %(message)s"
 ))
 logger.addHandler(file_handler)

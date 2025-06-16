@@ -1,12 +1,12 @@
 import os, sys, glob, random, time, copy, string, yaml, logging, datetime
 #sys.path.append( os.path.dirname( os.path.abspath(__file__) ) )
 sys.path.append(os.getcwd())
+#from libTest import *
 from pathlib import *
 from libYml import *
 from libRandom import *
 from libFile import *
 from libComfy import *
-from libTest import *
 from libPrint import *
 from libUpdate import *
 from libGetSet import *
@@ -56,26 +56,37 @@ class MyClass():
         # --------------------------
         self.CheckpointType='Pony'  
 
+    '''
+    Comfy Queue Prompt
+    '''
     def Queue(self):
-        if self.configYml.get("queue_prompt",True):
-            if queue_prompt(self.workflow_api,url=self.configYml.get('url')):
+        config = self.configYml
+        if config.get("queue_prompt", True):
+            if queue_prompt(self.workflow_api, url=config.get('url')):
                 return True
         else:
-            printGreen(" queue_prompt : ",self.configYml.get("queue_prompt",True))    
-                
-        #print("queue_prompt_wait : ",setupd.get("queue_prompt_wait",True))
-        if self.configYml.get("queue_prompt_wait",True):
-            queue_prompt_wait(url=self.configYml.get('url'))
+            printGreen(" queue_prompt : ", config.get("queue_prompt", True))    
+
+        if config.get("queue_prompt_wait", True):
+            queue_prompt_wait(url=config.get('url'))
         else:
-            printInfo(" queue_prompt_wait : ",self.configYml.get("queue_prompt_wait",True))   
+            printInfo(" queue_prompt_wait : ", config.get("queue_prompt_wait", True))   
         # -------------------------
         return False
 
+    '''
+    loop 최대값 설정
+    '''
     def SetLoopMax(self):
         self.CheckpointLoop=RandomMinMax(self.configYml.get("CheckpointLoop"))
         self.CharLoop=RandomMinMax(self.configYml.get("CharLoop"))
         self.QueueLoop=RandomMinMax(self.configYml.get("queueLoop"))
 
+    '''
+    Checkpoint 파일 목록
+    WeightCheckpoint.yml 가져오기
+    Checkpoint 뽑음
+    '''
     def CheckpointChange(self):
         print('[green] CheckpointChange start [green]')
 
@@ -121,6 +132,11 @@ class MyClass():
         self.CheckpointPath=  self.CheckpointFileDics.get(self.CheckpointName)
         print('self.CheckpointPath : ',(self.CheckpointPath))     
         
+    '''
+    Char 파일 목록
+    WeightChar.yml 가져오기
+    Char 뽑음
+    '''
     def CharChange(self):
         printInfo('CharChange start')
 
@@ -165,6 +181,11 @@ class MyClass():
         self.CharPath=  self.CharFileDics.get(self.CharName)     
         print('self.CharPath : ',(self.CharPath))  
 
+    ''' 
+    Lora 파일 목록
+    WeightLora.yml 가져오기
+    Lora 뽑음
+    '''
     def LoraChange(self):
         print('[green] LoraChange start [green]')
 
@@ -332,19 +353,11 @@ class MyClass():
 
 
         # ----------------------------
-
-    """
-    node
-    """
-    def WorkflowGet(self,node,key):
-        #return self.workflow_api.get(k1).get("inputs").get(k2)
-        return Get(self.workflow_api,None,node,"inputs",key)
-
-    def WorkflowSet(self,node,key,value):
-        #self.workflow_api.get(k1).get("inputs")[k2]=v
-        return Set(self.workflow_api,value,node,"inputs",key)
-
-    def DicYmlGet(self):
+    
+    '''
+    *.yml 사전 파일 가져오기
+    '''
+    def DicsChange(self):
         self.dicCheckpointYml=MergeYml(Path(self.configYml.get('dataPath'),self.CheckpointType,'checkpoint'),'*.yml')
         if self.configYml.get("checkpointYmlPrint",False):
             print('self.dicCheckpointYml : ',dict(islice(self.dicCheckpointYml.items(), 3)))   
@@ -352,7 +365,24 @@ class MyClass():
         self.dicLoraYml=MergeYml(Path(self.configYml.get('dataPath'),self.CheckpointType,'lora'),'*.yml')
         if self.configYml.get("loraYmlPrint",False):
             print('self.loraYml : ',dict(islice(self.dicLoraYml.items(), 3)))
+    
+    """
+    node
+    """
+    def GetWorkflow(self,node,key):
+        #return self.workflow_api.get(k1).get("inputs").get(k2)
+        return Get(self.workflow_api,None,node,"inputs",key)
+    
+    """
+    node
+    """
+    def SetWorkflow(self,node,key,value):
+        #self.workflow_api.get(k1).get("inputs")[k2]=v
+        return Set(self.workflow_api,value,node,"inputs",key)
 
+    '''
+    setupWildcard.yml 가져오기
+    '''
     def SetupWildcard(self):
 
         self.setupWildcard=ReadYml(
@@ -367,6 +397,9 @@ class MyClass():
          
         self.SetTive('setup',self.setupWildcard)
 
+    '''
+    setupWorkflow.yml 가져오기
+    '''
     def SetupWorkflow(self):
         self.setupWorkflow=ReadYml(
             Path(self.configYml.get('dataPath'),'setupWorkflow.yml')) 
@@ -379,9 +412,12 @@ class MyClass():
             print('self.setupWorkflow : ',self.setupWorkflow)           
         #print('self.setupWorkflow : ',self.setupWorkflow)           
 
+    '''
+    setupWorkflow.yml 가져온거 적용
+    '''
     def SetSetupWorkflow(self,node, list,randonFunc=None,func=None ): 
         for k in list:
-            v=self.WorkflowGet(node,k) 
+            v=self.GetWorkflow(node,k) 
             #print('SetSetupWorkflow1',node,k,v)    
             v=Get(self.setupWorkflow,v,'workflow',node,k) 
             #print('SetSetupWorkflow1',node,k,v)    
@@ -404,9 +440,9 @@ class MyClass():
                 v=max(v,m)
                 #print('SetSetupWorkflow3',node,k,v,m)
             #print(c,k,v)           
-            self.WorkflowSet(node,k,v)
+            self.SetWorkflow(node,k,v)
 
-    def SetWorkflowSet(self,node, list,func=None,randonFunc=None ): 
+    def SetWorkflowFuncRandom(self,node, list,func=None,randonFunc=None ): 
         for k in list:
             if func:
                 v=func(k)            
@@ -417,21 +453,23 @@ class MyClass():
             if not v:
                 #printWarn('SetWorkflowSet no value : ',node,k) 
                 continue       
-            self.WorkflowSet(node,k,v)
+            self.SetWorkflow(node,k,v)
 
+    '''
+    workflow_api.yml 가져오기
+    '''
     def SetWorkflowApi(self):
         self.workflow_api=ReadYml(
             Path(self.configYml.get('dataPath'),self.CheckpointType,self.configYml.get('workflow_api'))) 
    
     def SetCheckpointLoaderSimple(self):
         #print(self.workflow_api)
-        self.WorkflowSet('CheckpointLoaderSimple','ckpt_name',self.CheckpointPath)
+        self.SetWorkflow('CheckpointLoaderSimple','ckpt_name',self.CheckpointPath)
         tive=Get(self.dicCheckpointYml,None,self.CheckpointName)
         self.SetTive('Checkpoint',tive)
 
-
     def SetFaceDetailer(self):
-        self.WorkflowSet('FaceDetailer','seed',SeedInt())          
+        self.SetWorkflow('FaceDetailer','seed',SeedInt())          
         l=GetTypeList(self.workflow_api.get('FaceDetailer').get("inputs"),(int,  float),(bool,))
         #print('FaceDetailer l : ',l)
         self.SetSetupWorkflow('FaceDetailer',l,RandomMinMax)
@@ -440,16 +478,13 @@ class MyClass():
         self.SetSetupWorkflow('FaceDetailer',l,RandomWeight)
         
     def SetKSampler(self):
-        self.WorkflowSet('KSampler','seed',SeedInt())
+        self.SetWorkflow('KSampler','seed',SeedInt())
 
         checkpointYml=lambda obj, v, k: Get(obj.dicCheckpointYml, v, obj.CheckpointName, k)     
         l=GetTypeList(self.workflow_api.get('KSampler').get("inputs"),(int,  float),(bool,))       
         self.SetSetupWorkflow('KSampler',l,RandomMinMax,checkpointYml)
         l=GetTypeList(self.workflow_api.get('KSampler').get("inputs"),(str,  bool))
         self.SetSetupWorkflow('KSampler',l,RandomWeight,checkpointYml)
-        
-
-        #print(self.workflow_api)
 
     def SetEmptyLatentImage(self): 
         l=GetTypeList(self.workflow_api.get('EmptyLatentImage').get("inputs"),(int,  float),(bool,))   
@@ -462,7 +497,7 @@ class MyClass():
     def SetSaveImage(self): 
         tm=time.strftime('%Y%m%d-%H%M%S')
 
-        self.WorkflowSet('SaveImage1','filename_prefix',
+        self.SetWorkflow('SaveImage1','filename_prefix',
             f"\
 {self.CheckpointType}/\
 {self.CheckpointName}/\
@@ -470,7 +505,7 @@ class MyClass():
 {self.CheckpointName}-{self.CharName}-{tm}-1"
             )
         
-        self.WorkflowSet('SaveImage2','filename_prefix',
+        self.SetWorkflow('SaveImage2','filename_prefix',
             f"\
 {self.CheckpointType}/\
 {self.CheckpointName}/\
@@ -506,14 +541,11 @@ class MyClass():
         negativeWildcard=",".join(lnegative)
         # print('positiveWildcard : ',positiveWildcard)
         # print('negativeWildcard : ',negativeWildcard)
-        self.WorkflowSet('positiveWildcard','wildcard_text',positiveWildcard) 
-        self.WorkflowSet('negativeWildcard','wildcard_text',negativeWildcard) 
-        self.WorkflowSet('positiveWildcard','seed',SeedInt()) 
-        self.WorkflowSet('negativeWildcard','seed',SeedInt()) 
+        self.SetWorkflow('positiveWildcard','wildcard_text',positiveWildcard) 
+        self.SetWorkflow('negativeWildcard','wildcard_text',negativeWildcard) 
+        self.SetWorkflow('positiveWildcard','seed',SeedInt()) 
+        self.SetWorkflow('negativeWildcard','seed',SeedInt()) 
 
-    def SetCharSub(self,k):
-        return Get(self.dicLoraYml,Get(self.setupWorkflow, None, 'charDefult', k),self.CharName,k)
-    
     def SetTive(self,numName ,dic):
         #self.loraNum+=1
         #s=str(self.loraNum).zfill(2)
@@ -551,76 +583,79 @@ class MyClass():
         LoraLoaderNextKey=LoraLoaderKey='LoraLoader'
 
         for self.loraTmp in self.lorasSet:
-            if self.loraTmp in self.LoraFileNames:
-                #print('SetLora : ',lora)
-                self.loraNum+=1
-                # self.WorkflowSet('LoraLoader','seed',SeedInt()) 
-                # self.WorkflowSet('LoraLoader','lora_name',self.LoraFileDics.get(lora))
-                #print('LoraLoader lora_weight : ',self.WeightLora.get(lora,{}).get('weight',1.0))
-                
-                dic=Get(self.dicLoraYml,None,self.loraTmp)
-                self.SetTive('Lora',dic)
-
-                # positive=Get(self.dicLoraYml,None,lora,'positive')
-                # print('positive : ',positive)
-                # self.positiveDics.setdefault( f'lora{self.loraNum.zfill(2)}',{ lora:positive})
-                # # if positive:
-                # #     update(self.positiveDics,positive)
-                # negative=Get(self.dicLoraYml,None,lora,'negative')
-                # print('negative : ',negative)        
-                # self.negativeDics.setdefault( f'lora{self.loraNum.zfill(2)}',{lora:negative})
-                # if negative:
-                #     update(self.negativeDics,negative)
-
-                LoraLoaderTmpKey=f'LoraLoader-{self.loraTmp}'
-                LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
-                self.workflow_api[LoraLoaderTmpKey]=LoraLoaderTmp
-
-                self.WorkflowGet(LoraLoaderTmpKey,'model')[0]="CheckpointLoaderSimple"
-                self.WorkflowGet(LoraLoaderTmpKey,'clip')[0]="CheckpointLoaderSimple"
-                # LoraLoaderTmp['inputs']['model'][0]="CheckpointLoaderSimple"
-                # LoraLoaderTmp['inputs']['clip'][0]="CheckpointLoaderSimple"
-                self.WorkflowSet(LoraLoaderTmpKey,'seed',SeedInt()) 
-                self.WorkflowSet(LoraLoaderTmpKey,'lora_name',self.LoraFileDics.get(self.loraTmp)) 
-
-                self.SetWorkflowSet(LoraLoaderTmpKey, 
-                    ['strength_model','strength_clip','A','B'],
-                    self.SetLoraSub,
-                    RandomMinMax
-                    )
-                self.SetWorkflowSet(LoraLoaderTmpKey, 
-                    ['preset','block_vector'],
-                    self.SetLoraSub,
-                    RandomWeight
-                    )
-                
-                self.WorkflowGet(LoraLoaderNextKey,'model')[0]=LoraLoaderTmpKey
-                self.WorkflowGet(LoraLoaderNextKey,'clip')[0]=LoraLoaderTmpKey
-                # LoraLoaderNext['inputs']['model'][0]=LoraLoaderTmpKey
-                # LoraLoaderNext['inputs']['clip'][0]=LoraLoaderTmpKey
-                LoraLoaderNext= LoraLoaderTmp
-                LoraLoaderNextKey= LoraLoaderTmpKey
-
-
-            else:
+            if self.loraTmp not in self.LoraFileNames:
                 printWarn('SetLora no : ',lora)
+                continue
+            #print('SetLora : ',lora)
+            self.loraNum+=1
+            # self.WorkflowSet('LoraLoader','seed',SeedInt()) 
+            # self.WorkflowSet('LoraLoader','lora_name',self.LoraFileDics.get(lora))
+            #print('LoraLoader lora_weight : ',self.WeightLora.get(lora,{}).get('weight',1.0))
+            
+            dic=Get(self.dicLoraYml,None,self.loraTmp)
+            self.SetTive('Lora',dic)
+
+            # positive=Get(self.dicLoraYml,None,lora,'positive')
+            # print('positive : ',positive)
+            # self.positiveDics.setdefault( f'lora{self.loraNum.zfill(2)}',{ lora:positive})
+            # # if positive:
+            # #     update(self.positiveDics,positive)
+            # negative=Get(self.dicLoraYml,None,lora,'negative')
+            # print('negative : ',negative)        
+            # self.negativeDics.setdefault( f'lora{self.loraNum.zfill(2)}',{lora:negative})
+            # if negative:
+            #     update(self.negativeDics,negative)
+
+            LoraLoaderTmpKey=f'LoraLoader-{self.loraTmp}'
+            LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
+            self.workflow_api[LoraLoaderTmpKey]=LoraLoaderTmp
+
+            self.GetWorkflow(LoraLoaderTmpKey,'model')[0]="CheckpointLoaderSimple"
+            self.GetWorkflow(LoraLoaderTmpKey,'clip')[0]="CheckpointLoaderSimple"
+            # LoraLoaderTmp['inputs']['model'][0]="CheckpointLoaderSimple"
+            # LoraLoaderTmp['inputs']['clip'][0]="CheckpointLoaderSimple"
+            self.SetWorkflow(LoraLoaderTmpKey,'seed',SeedInt()) 
+            self.SetWorkflow(LoraLoaderTmpKey,'lora_name',self.LoraFileDics.get(self.loraTmp)) 
+
+            self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
+                ['strength_model','strength_clip','A','B'],
+                self.SetLoraSub,
+                RandomMinMax
+                )
+            self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
+                ['preset','block_vector'],
+                self.SetLoraSub,
+                RandomWeight
+                )
+            
+            self.GetWorkflow(LoraLoaderNextKey,'model')[0]=LoraLoaderTmpKey
+            self.GetWorkflow(LoraLoaderNextKey,'clip')[0]=LoraLoaderTmpKey
+            # LoraLoaderNext['inputs']['model'][0]=LoraLoaderTmpKey
+            # LoraLoaderNext['inputs']['clip'][0]=LoraLoaderTmpKey
+            LoraLoaderNext= LoraLoaderTmp
+            LoraLoaderNextKey= LoraLoaderTmpKey
+
+
         #print(self.workflow_api)
 
         # print('self.positive : ',self.positiveDics)
         # print('self.negative : ',self.negativeDics)
-
+    
+    def SetCharSub(self,k):
+        return Get(self.dicLoraYml,Get(self.setupWorkflow, None, 'charDefult', k),self.CharName,k)
+    
     def SetChar(self):
-        r=self.WorkflowSet('LoraLoader','lora_name',self.CharPath )
+        r=self.SetWorkflow('LoraLoader','lora_name',self.CharPath )
         #print('LoraLoader lora_name : ',r)
-        self.WorkflowSet('LoraLoader','seed',SeedInt()) 
+        self.SetWorkflow('LoraLoader','seed',SeedInt()) 
 
         #ld=lambda obj, k: Get(obj.dicLoraYml,Get(obj.setupWorkflow, None, 'charDefult', k),obj.CharName,k)
-        self.SetWorkflowSet('LoraLoader', 
+        self.SetWorkflowFuncRandom('LoraLoader', 
             ['strength_model','strength_clip','A','B'],
             self.SetCharSub,
             RandomMinMax
             )
-        self.SetWorkflowSet('LoraLoader', 
+        self.SetWorkflowFuncRandom('LoraLoader', 
             ['preset','block_vector'],
             self.SetCharSub,
             RandomWeight
@@ -678,7 +713,7 @@ class MyClass():
             
 
             # -------------------------
-            self.DicYmlGet()
+            self.DicsChange()
             self.SetupWildcard()
             self.SetupWorkflow()
             # -------------------------

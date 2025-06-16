@@ -1,6 +1,6 @@
-dataPath: ../ComfyU-auto-script_data
-CheckpointPath: ../ComfyUI/models/checkpoints
-LoraPath: ../ComfyUI/models/Loras
+dataPath: ../ComfyU-auto-script_data # 설정 폴더 위치
+CheckpointPath: ../ComfyUI/models/checkpoints # 
+LoraPath: ../ComfyUI/models/Loras #
 LoraCharPath: char
 LoraEtcPath: etc
 safetensorsFile: '*.safetensors'
