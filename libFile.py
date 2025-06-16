@@ -52,4 +52,9 @@ def MakeDirectoryStructure(path, structure):
             #path.touch(exist_ok=True)
     #return True
 
-            
+def get_workflow_api_text(path): 
+    if not os.path.exists(path):
+        print.Warn(f'파일이 없습니다: {path}')
+        return None
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read()

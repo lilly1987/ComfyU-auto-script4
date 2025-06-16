@@ -11,9 +11,10 @@ from libPrint import *
 from libUpdate import *
 from libGetSet import *
 from libType import *
-from libData import *
 from itertools import islice
 
+if not os.path.exists('config.yml'):
+    from libData import *
 
 class MyClass():
 
@@ -396,23 +397,23 @@ class MyClass():
             print.Config('self.loraYml : ',dict(islice(self.dicLoraYml.items(), 3)))
     
     """
-    node
+    self.workflow_api
     """
     def GetWorkflow(self,node,key):
         #return self.workflow_api.get(k1).get("inputs").get(k2)
         return Get(self.workflow_api,None,node,"inputs",key)
     
     """
-    node
+    self.workflow_api
     """
     def SetWorkflow(self,node,key,value):
         #self.workflow_api.get(k1).get("inputs")[k2]=v
         return Set(self.workflow_api,value,node,"inputs",key)
 
-    '''
-    setupWildcard.yml 가져오기
-    '''
-    def SetupWildcard(self):
+    def GetSetupWildcard(self):
+        '''
+        setupWildcard.yml 가져오기
+        '''
 
         self.setupWildcard=ReadYml(
             Path(self.configYml.get('dataPath'),'setupWildcard.yml')) 
@@ -426,10 +427,10 @@ class MyClass():
          
         self.SetTive('setup',self.setupWildcard)
 
-    '''
-    setupWorkflow.yml 가져오기
-    '''
-    def SetupWorkflow(self):
+    def GetSetupWorkflow(self):
+        '''
+        setupWorkflow.yml 가져오기
+        '''
         self.setupWorkflow=ReadYml(
             Path(self.configYml.get('dataPath'),'setupWorkflow.yml')) 
         update(
@@ -441,10 +442,11 @@ class MyClass():
             print.Config('self.setupWorkflow : ',self.setupWorkflow)           
         #print('self.setupWorkflow : ',self.setupWorkflow)           
 
-    '''
-    setupWorkflow.yml 가져온거 적용
-    '''
-    def SetSetupWorkflow(self,node, list,randonFunc=None,func=None ): 
+    def SetWorkflowFuncRandom2(self,node, list,randonFunc=None,func=None ): 
+        """
+        setupWorkflow.yml self.setupWorkflow 가져온거 적용.
+        list : workflow에 적용할 키값들. [] 이여도 문제 없음
+        """        
         for k in list:
             v=self.GetWorkflow(node,k) 
             #print('SetSetupWorkflow1',node,k,v)    
@@ -487,7 +489,7 @@ class MyClass():
     '''
     workflow_api.yml 가져오기
     '''
-    def SetWorkflowApi(self):
+    def GetWorkflowApi(self):
         self.workflow_api=ReadYml(
             Path(self.configYml.get('dataPath'),self.CheckpointType,self.configYml.get('workflow_api'))) 
    
@@ -498,30 +500,53 @@ class MyClass():
         self.SetTive('Checkpoint',tive)
 
     def SetFaceDetailer(self):
+        '''
+        SetSetupWorkflowToWorkflowApi 와 중복?
+        제거 필요? 
+        '''
         self.SetWorkflow('FaceDetailer','seed',SeedInt())          
         l=GetTypeList(self.workflow_api.get('FaceDetailer').get("inputs"),(int,  float),(bool,))
         #print('FaceDetailer l : ',l)
-        self.SetSetupWorkflow('FaceDetailer',l,RandomMinMax)
+        self.SetWorkflowFuncRandom2('FaceDetailer',l,RandomMinMax)
         l=GetTypeList(self.workflow_api.get('FaceDetailer').get("inputs"),(str,  bool))
         #print('FaceDetailer l : ',l)
-        self.SetSetupWorkflow('FaceDetailer',l,RandomWeight)
+        self.SetWorkflowFuncRandom2('FaceDetailer',l,RandomWeight)
         
     def SetKSampler(self):
         self.SetWorkflow('KSampler','seed',SeedInt())
 
         checkpointYml=lambda obj, v, k: Get(obj.dicCheckpointYml, v, obj.CheckpointName, k)     
         l=GetTypeList(self.workflow_api.get('KSampler').get("inputs"),(int,  float),(bool,))       
-        self.SetSetupWorkflow('KSampler',l,RandomMinMax,checkpointYml)
+        self.SetWorkflowFuncRandom2('KSampler',l,RandomMinMax,checkpointYml)
         l=GetTypeList(self.workflow_api.get('KSampler').get("inputs"),(str,  bool))
-        self.SetSetupWorkflow('KSampler',l,RandomWeight,checkpointYml)
+        self.SetWorkflowFuncRandom2('KSampler',l,RandomWeight,checkpointYml)
+
+    def SetSetupWorkflowToWorkflowApi(self):
+        """
+        workflow_api에 setupWorkflow.yml의 값을 넣음.
+        """
+        #print('SetSetupWorkflow : ',self.setupWorkflow)
+        #list(self.workflow_api.keys())-['CheckpointLoaderSimple','KSampler','FaceDetailer']
+        
+        wl=set(self.workflow_api.keys())-set(self.configYml.get('excludeNode',[]))
+        #for k,v in self.workflow_api.items():
+        #print.Value('wl : ',wl)
+        for k in wl:
+            self.SetWorkflow(k,'seed',SeedInt())
+            v=self.workflow_api.get(k,{})
+            l=GetTypeList(v.get("inputs"),(int,  float),(bool,))
+            self.SetWorkflowFuncRandom2(k,l,RandomMinMax)
+            l=GetTypeList(v.get("inputs"),(str,  bool))
+            self.SetWorkflowFuncRandom2(k,l,RandomWeight)
+
 
     def SetEmptyLatentImage(self): 
         l=GetTypeList(self.workflow_api.get('EmptyLatentImage').get("inputs"),(int,  float),(bool,))   
-        self.SetSetupWorkflow('EmptyLatentImage',l,RandomMinMax)
+        self.SetWorkflowFuncRandom2('EmptyLatentImage',l,RandomMinMax)
 
     def SetVAELoader(self): 
         l=GetTypeList(self.workflow_api.get('VAELoader').get("inputs"),(int,  float),(bool,))   
-        self.SetSetupWorkflow('VAELoader',l,RandomMinMax)
+        self.SetWorkflowFuncRandom2('VAELoader',l,RandomMinMax)
 
     def SetSaveImage(self): 
         tm=time.strftime('%Y%m%d-%H%M%S')
@@ -767,22 +792,25 @@ class MyClass():
 
             # -------------------------
             self.DicsChange()
-            self.SetupWildcard()
-            self.SetupWorkflow()
+            self.GetWorkflowApi()
+            self.GetSetupWildcard()
+            self.GetSetupWorkflow()
             # -------------------------
-            self.SetWorkflowApi()
+            self.SetSetupWorkflowToWorkflowApi()
             self.SetCheckpointLoaderSimple()
-            self.SetEmptyLatentImage()
             self.SetSaveImage()
-            self.SetVAELoader()
             self.SetKSampler()
-            self.SetFaceDetailer()
+            #self.SetEmptyLatentImage()
+            #self.SetVAELoader()
+            #self.SetFaceDetailer()
             self.SetChar()
             self.SetLora()
+
             # print('self.positive : ',self.positiveDics)
             # print('self.negative : ',self.negativeDics)
             self.SetWildcard()
 
+            # -------------------------
             if self.configYml.get("WorkflowPrint",False):
                 print.Config('self.workflow_api : ',self.workflow_api)   
             # -------------------------
@@ -796,7 +824,6 @@ class MyClass():
 {str(datetime.timedelta(seconds=(time.time()-self.timeStart)))} \
 {self.CheckpointName} \
 {self.CharName} ")
-            # -------------------------
             # -------------------------
             if self.Queue():
                 return
@@ -824,7 +851,6 @@ class MyClass():
 
     def Run(self):
         try:
-            CreateDataFileDir()
             #printBlue(' === start === ')
             # -------------------------
             self.loop=self.Loop()

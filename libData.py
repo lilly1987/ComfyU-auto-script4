@@ -1,5 +1,6 @@
 from libFile import *
 from libYml import *
+from libPrint import *
 
 configYml="""
 # --- 경로 설정 ---
@@ -41,10 +42,25 @@ setupWorkflowPrint: false # dataPath/CheckpointType/setupWorkflow.yml 출력 여
 setupWildcardPrint: false # dataPath/CheckpointType/setupWildcard.yml 출력 여부
 LoraChangeWarnPrint: false # LoraChange 과정중 경고 출력 여부
 LoraChangePrint: false # LoraChange 과정중 와일드카드 관련 출력 여부
-WorkflowPrint: false # ComfyUI workflow_api 출력 여부
+WorkflowPrint: false # ComfyUI로 보낼기 직전 workflow_api 출력 여부
 shuffleWildcardPrint: false # shuffle Wildcard 전후 출력 여부
 setTivePrint: false # SetTive 처리 과정 출력 여부
 setWildcardPrint: false # 와일드 카드 관련 최종 처리 과정 출력 여부
+# --- SetSetupWorkflowToWorkflowApi 설정 ---
+# workflow_api에 setupWorkflow.yml의 내용을 넣을때 제외할 노드
+excludeNode: 
+- CheckpointLoaderSimple
+- KSampler
+- CLIPTextEncodeP
+- CLIPTextEncodeN
+- VAEDecode
+- SaveImage1
+- SaveImage2
+- positiveWildcard
+- negativeWildcard
+- PreviewImage24
+- PreviewImage25
+- PreviewImage26
 # --- 수정 여부 확인 ---
 수정 안해서 작동 안시킴: true # 수정 했으면 이 라인은 지우거나 False로 변경하세요. True로 되어 있으면 작동 안함
 """
@@ -175,6 +191,8 @@ WeightYml="""
 'safetensors file name2': 20 # 'sample1.safetensors' 파일일 경우 sample1 이라고 적어야함
 'safetensors file name3': 30 # 'sample1.safetensors' 파일일 경우 sample1 이라고 적어야함
 """
+workflow_api=get_workflow_api_text('workflow_api.json')
+#print(f'workflow_api:' ,workflow_api)
 sampleSetup={
     'sample1.yml':sampleYml,
     'sample2.yml':sampleYml,
@@ -187,6 +205,7 @@ directoryTypeSetup={
     'WeightChar.yml': WeightYml,
     'WeightCheckpoint.yml': WeightYml,
     'WeightLora.yml': WeightYml,
+    'workflow_api.json': workflow_api,
 }
 directorySetup={
     'IL': directoryTypeSetup,
@@ -197,6 +216,7 @@ directorySetup={
 }
 
 def CreateDataFileDir():
+    print.Debug('CreateDataFileDir')
     if not os.path.exists('config.yml'):
         MakeDirectoryStructure('../ComfyU-auto-script-data-sample',directorySetup)
         print.Warn('--------------------------------------------------------')
@@ -206,3 +226,5 @@ def CreateDataFileDir():
         print.Warn('--------------------------------------------------------')
         CreateYmlFile( 'config.yml',configYml)
         exit(0)
+
+CreateDataFileDir()
