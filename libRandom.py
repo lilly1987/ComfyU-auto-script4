@@ -41,7 +41,7 @@ def RandomWeight(i):
         r=random.choices(list(i.keys()),weights=list(i.values()),k=1)[0]
     return r  
 
-def RandomdicWeight(d, w, c=1, result=[]):
+def RandomDicWeight(d, w, c=1, result=[]):
     t = {k: v[w] for k, v in d.items() if w in v}
     if not t:
         printErr("RandomdicWeight err: ", dict(islice(d, 3)), w, c)
@@ -51,3 +51,14 @@ def RandomdicWeight(d, w, c=1, result=[]):
 
 def SeedInt():
     return random.randint(0, 0xffffffffffffffff )
+
+
+def RandomItemsCnt(items, c=1):
+    if isinstance(items, dict):
+        items=list(items.keys())
+    if not isinstance(items, (list, tuple)):
+        printErr("RandomItemsCnt err: items is not list or tuple", items)
+        return []
+    if len(items) > c:
+        items=random.sample(items, c)        
+    return items

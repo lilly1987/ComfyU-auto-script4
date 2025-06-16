@@ -22,7 +22,7 @@ queueLoop: 3
 # --------- 확률 -----------
 CheckpointWeightPer: 0.5
 
-noCharPer: 01.0625 # 캐릭 미적용 확률. CharWeightPer 로직 무시됨
+noCharPer: 0.0625 # 캐릭 미적용 확률. CharWeightPer 로직 무시됨
 noCharWildcard: 
     positive:
         '_': '/**/ {__danbooru_female_character_my__|__danbooru_female_character_my_simple__}/**/'
@@ -42,7 +42,10 @@ shuffleWildcard:
 #loraYmlPrint: True
 #setupWorkflowPrint: True
 #setupWildcardPrint: True
-setWildcardPrint: True
-#LoraChangeNoPrint: True
+#LoraChangeWarnPrint: True
+#LoraChangePrint: True
+
+#setTivePrint: True
+#setWildcardPrint: True
 #WorkflowPrint: True
 # ---------  -----------

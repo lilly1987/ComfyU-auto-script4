@@ -52,9 +52,9 @@ class MyClass():
         self.CheckpointType=None
         self.configYml=None
         self.loraTmp=None
+        self.noChar=False
 
-        # --------------------------
-        self.CheckpointType='Pony'  
+        # -------------------------- 
 
     '''
     Comfy Queue Prompt
@@ -89,12 +89,11 @@ class MyClass():
     CheckpointWeightPer 확률로 뽑음
     '''
     def CheckpointChange(self):
-        print('[green] CheckpointChange start [green]')
+        #print('[green] CheckpointChange start [green]')
 
         self.CheckpointType=RandomWeightCnt(self.configYml.get('CheckpointTypes'))[0]
+        print.Value('self.CheckpointType : ',self.CheckpointType)
 
-        CheckpointWeightPer=self.configYml.get('CheckpointWeightPer',0.5)
-        print('CheckpointWeightPer : ',CheckpointWeightPer)
 
         self.CheckpointFileDics,\
         self.CheckpointFileLists,\
@@ -103,15 +102,19 @@ class MyClass():
             Path(self.CheckpointType,self.configYml.get('safetensorsFile')) , 
             self.configYml.get('CheckpointPath'))
         
-        print('self.CheckpointFileDics : ',len(self.CheckpointFileDics))
+        print.Value('self.CheckpointFileDics : ',len(self.CheckpointFileDics))
 
         self.WeightCheckpoint=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightCheckpoint.yml")) 
 
         self.WeightCheckpoint = {key: self.WeightCheckpoint[key] for key in self.CheckpointFileNames if key in self.WeightCheckpoint}
 
-        print('self.WeightCheckpoint : ',len(self.WeightCheckpoint)) 
-
-        if CheckpointWeightPer>random.random():
+        print.Value('self.WeightCheckpoint : ',len(self.WeightCheckpoint)) 
+        
+        self.CheckpointWeightPer=self.configYml.get('CheckpointWeightPer',0.5)
+        #print.Value('self.CheckpointWeightPer : ',self.CheckpointWeightPer)
+        self.CheckpointWeightPerResult=self.CheckpointWeightPer>random.random()
+        print.Value('self.CheckpointWeightPer : ',self.CheckpointWeightPer,self.CheckpointWeightPerResult)
+        if self.CheckpointWeightPerResult:
             if len(self.WeightCheckpoint)>0:
                 self.CheckpointName=RandomWeightCnt(self.WeightCheckpoint)[0]
             else:
@@ -121,7 +124,7 @@ class MyClass():
         else:            
             self.SubCheckpoint = [x for x in self.CheckpointFileNames if x not in self.WeightCheckpoint.keys()]
 
-            print('self.SubCheckpoint : ',len(self.SubCheckpoint))
+            print.Value('self.SubCheckpoint : ',len(self.SubCheckpoint))
 
             if len(self.SubCheckpoint)>0:
                 self.CheckpointName=random.choice(self.SubCheckpoint)
@@ -129,9 +132,9 @@ class MyClass():
                 self.CheckpointName=random.choice(self.CheckpointFileNames)
                 printWarn('no WeightCheckpoint ')  
 
-        print('self.CheckpointName : ',(self.CheckpointName))     
+        print.Value('self.CheckpointName : ',(self.CheckpointName))     
         self.CheckpointPath=  self.CheckpointFileDics.get(self.CheckpointName)
-        print('self.CheckpointPath : ',(self.CheckpointPath))     
+        print.Value('self.CheckpointPath : ',(self.CheckpointPath))     
         
     '''
     Char 파일 목록
@@ -140,7 +143,7 @@ class MyClass():
     CharWeightPer 확률로 뽑음
     '''
     def CharChange(self):
-        printInfo('CharChange start')
+        #printInfo('CharChange start')
 
         self.CharFileDics,\
         self.CharFileLists,\
@@ -149,65 +152,50 @@ class MyClass():
             Path(self.CheckpointType,self.configYml.get('LoraCharPath','char'),self.configYml.get('safetensorsFile')) , 
             self.configYml.get('LoraPath'))        
         # print('self.CharFileDics : ',(self.CharFileDics))
-        print('self.CharFileDics : ',len(self.CharFileDics))
+        print.Value('self.CharFileDics : ',len(self.CharFileDics))
 
-        noCharPer=self.configYml.get('noCharPer',0.5)
-        if noCharPer>random.random():
+        self.noCharPer=self.configYml.get('noCharPer',0.5)
+        #print.Value('self.noCharPer : ',self.noCharPer)
+        self.noCharPerResult=self.noCharPer>random.random()
+        print.Value('self.noCharPer : ',self.noCharPer,self.noCharPerResult)
+        if self.noCharPerResult:
             self.noChar=True
             self.CharName='noChar'
             self.CharPath=self.CharFileLists[0]
-            print('noCharPer : ',self.CharPath)  
+            print.Value('self.CharPath : ',self.CharPath)  
         else:
             self.WeightChar=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightChar.yml")) 
             self.WeightChar = {key: self.WeightChar[key] for key in self.CharFileNames if key in self.WeightChar}
-            print('self.WeightChar : ',len(self.WeightChar)) 
+            print.Value('self.WeightChar : ',len(self.WeightChar)) 
 
-            CharWeightPer=self.configYml.get('CharWeightPer',0.5)
-            print('CharWeightPer : ',CharWeightPer)
-            if CharWeightPer>random.random():
+            self.CharWeightPer=self.configYml.get('CharWeightPer',0.5)
+            #print.Value('self.CharWeightPer : ',self.CharWeightPer)
+            self.CharWeightPerResult=self.CharWeightPer>random.random()
+            print.Value('self.CharWeightPer : ',self.CharWeightPer,self.CharWeightPerResult)
+            if self.CharWeightPerResult:
                 if len(self.WeightChar)>0:
                     self.CharName=RandomWeightCnt(self.WeightChar)[0]
                 else:
-                    print('[yellow] no WeightChar [/yellow]')       
+                    print.Warn('no WeightChar')       
                     self.CharName=random.choice(self.CharFileNames)
 
             else:            
                 self.SubChar = [x for x in self.CharFileNames if x not in self.WeightChar.keys()]
 
-                print('self.SubChar : ',len(self.SubChar))
+                print.Value('self.SubChar : ',len(self.SubChar))
 
                 if len(self.SubChar)>0:
                     self.CharName=random.choice(self.SubChar)
                 else:
-                    print('[yellow] no SubChar [/yellow]')       
+                    print.Warn('no SubChar')       
                     self.CharName=random.choice(self.CharFileNames)
 
-            print('self.CharName : ',self.CharName)  
+            print.Value('self.CharName : ',self.CharName)  
             self.CharPath=  self.CharFileDics.get(self.CharName)     
-            print('self.CharPath : ',self.CharPath)  
+            print.Value('self.CharPath : ',self.CharPath)  
 
-    ''' 
-    Lora 파일 목록
-    WeightLora.yml 가져오기
-    Lora 뽑음
-    '''
-    def LoraChange(self):
-        print('[green] LoraChange start [green]')
 
-        self.LoraFileDics,\
-        self.LoraFileLists,\
-        self.LoraFileNames=\
-            GetFileDicList( 
-            Path(self.CheckpointType,self.configYml.get('LoraEtcPath','etc'),self.configYml.get('safetensorsFile')) , 
-            self.configYml.get('LoraPath'))
-        
-        # print('self.LoraFileDics : ',(self.LoraFileDics))
-        print('self.LoraFileDics : ',len(self.LoraFileDics))
-
-        self.WeightLora:dict=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightLora.yml")) 
-
-        print('self.WeightLora : ',len(self.WeightLora)) 
-
+    def LoraChangeSubDel(self):
         # 없는거 제거
         for k1,v1 in list(self.WeightLora.items()):
             #print('LoraChange : ',k , v.get('cnt')) 
@@ -217,8 +205,8 @@ class MyClass():
 
                 weight=v2.get('weight')
                 per=v2.get('per')
-                if self.configYml.get('LoraChangeNoPrint',False):
-                    print('LoraChange : ',k2 ,weight , per) 
+                if self.configYml.get('LoraChangeWarnPrint',False):
+                    print.Warn('LoraChange no7 : ',k2 ,weight , per) 
                 if not weight and not per: 
                     if self.configYml.get('LoraChangeNoPrint',False):
                         printWarn('LoraChange no7 : ',k2 ) 
@@ -226,8 +214,8 @@ class MyClass():
                     continue
 
                 loras=v2.get('loras',{})
-                if self.configYml.get('LoraChangeNoPrint',False):
-                    print('loras : ',len(loras)) 
+                if self.configYml.get('LoraChangeWarnPrint',False):
+                    print.Warn('LoraChange no6 : ',len(loras)) 
                 
                 #loras = {k3: v3 for k3, v3 in loras.items() if k3 in self.LoraFileNames}
                 if isinstance(loras, dict):
@@ -244,30 +232,30 @@ class MyClass():
                         if k3 in self.LoraFileNames:
                             lorasTmp.append(k3)
                         else:
-                            if self.configYml.get('LoraChangeNoPrint',False):
-                                printWarn('LoraChange no5 : ',k3 )
+                            if self.configYml.get('LoraChangeWarnPrint',False):
+                                print.Warn('LoraChange no5 : ',k3 )
                 elif isinstance(loras, str):
                     lorasTmp=None
                     if k3 in self.LoraFileNames:
                         lorasTmp=(k3)
                     else:
-                        if self.configYml.get('LoraChangeNoPrint',False):
-                            printWarn('LoraChange no4 : ',k3 )
+                        if self.configYml.get('LoraChangeWarnPrint',False):
+                            print.Warn('LoraChange no4 : ',k3 )
                 else:
                     lorasTmp=None
-                    if self.configYml.get('LoraChangeNoPrint',False):
-                        printWarn('LoraChange no3 : ',k3 )
+                    if self.configYml.get('LoraChangeWarnPrint',False):
+                        print.Warn('LoraChange no3 : ',k3 )
 
                 if not lorasTmp: 
-                    if self.configYml.get('LoraChangeNoPrint',False):
-                        printWarn('LoraChange no2 : ',k2 ) 
+                    if self.configYml.get('LoraChangeWarnPrint',False):
+                        print.Warn('LoraChange no2 : ',k2 ) 
                     dic.pop(k2)
                 else:
                     dic[k2]["loras"] = lorasTmp
 
             if not dic: 
-                if self.configYml.get('LoraChangeNoPrint',False):
-                    printWarn('LoraChange no1 : ',k1 ) 
+                if self.configYml.get('LoraChangeWarnPrint',False):
+                    print.Warn('LoraChange no1 : ',k1 ) 
                 self.WeightLora.pop(k1)
             else:
                 self.WeightLora[k1]['dic'] = dic
@@ -285,26 +273,21 @@ class MyClass():
             #     printWarn('LoraChange no : ',k1 ) 
             #     self.WeightLora.pop(k1)
 
-        #print(self.WeightLora)
-        # ----------------------------
+    def LoraChangeSubPick(self):
         self.lorasSet=set() 
+        
         for k1,v1 in self.WeightLora.items():
-            print('WeightLora : ',k1)
-
             dic=v1.get('dic')
-            
+            dicTmp={}
+            lorasSetTmp=set() 
+            # ---------------------------------------------------------
             per=v1.get('per',False)
             if per:                
                 perMax=v1.get('perMax',0)
-                #print('perCnt : ',perCnt)
                 perMax=RandomMinMax(perMax)
-                #print('perCnt : ',perCnt)
                 perCnt=0
-                #print('perCnt, perMax : ',perCnt,perMax)
-
                 perFirsts=v1.get('perFirsts',False)
-
-                lorasSetTmp=set() 
+                #lorasSetTmp=set() 
 
                 for k2,v2 in dic.items():
                     
@@ -316,47 +299,86 @@ class MyClass():
                     if per>random.random():
                         loras=v2.get('loras')
                         lora=RandomWeight(loras) 
-                        lorasSetTmp.add(lora)
-                        #update(self.positive,v2.get('positive'))
-                        #update(self.negative,v2.get('negative'))
-                        self.SetTive('Weight',v2)
-                        # self.loraNum+=1
-                        # self.positiveDics.setdefault( f'Weight{self.loraNum.zfill(2)}',{lora:v2.get('positive')}) 
-                        # self.negativeDics.setdefault( f'Weight{self.loraNum.zfill(2)}',{lora:v2.get('negative')}) 
+                        dicTmp[lora]=v2
+                        #lorasSetTmp.add(lora)
+                        #self.SetTive('Weight',v2)
                         perCnt+=1
  
-                print('lorasListTmp : ',lorasSetTmp)
-                self.lorasSet=self.lorasSet.union(lorasSetTmp)
-
-            weight=v1.get('weight',False)
+                #print('lorasListTmp : ',lorasSetTmp)
+                #self.lorasSet=self.lorasSet.union(lorasSetTmp)
+            # ---------------------------------------------------------
+            weight=v1.get('weight',False)            
             if weight:
                 weightMax=v1.get('weightMax',0)
                 weightMax=RandomMinMax(weightMax) 
-                lorasKeySetTmp=set(RandomdicWeight(dic,'weight',weightMax))
-                print('lorasKeySetTmp : ',lorasKeySetTmp)
-                lorasSetTmp=set() 
+                lorasKeySetTmp=set(RandomDicWeight(dic,'weight',weightMax))
+                #print('LoraChangeSubPick weight : ',lorasKeySetTmp)
+                #lorasSetTmp=set() 
                 for k2 in lorasKeySetTmp:
                     v2=dic.get(k2)
                     loras=v2.get('loras')
                     lora=RandomWeight(loras) 
-                    lorasSetTmp.add(lora)
-                    # update(self.positiveDics,v2.get('positive',{}))
-                    # update(self.negativeDics,v2.get('negative',{})) 
-                    self.SetTive('Weight',v2)
-                    # self.loraNum+=1
-                    # self.positiveDics.setdefault( f'Weight{self.loraNum.zfill(2)}',{lora:v2.get('positive')}) 
-                    # self.negativeDics.setdefault( f'Weight{self.loraNum.zfill(2)}',{lora:v2.get('negative')}) 
+                    dicTmp[lora]=v2
+                    #lorasSetTmp.add(lora)
+                    #self.SetTive('Weight',v2)
 
-                print('lorasListTmp : ',lorasSetTmp)
-                self.lorasSet=self.lorasSet.union(lorasSetTmp)
+                #print('lorasListTmp : ',lorasSetTmp)
+                #self.lorasSet=self.lorasSet.union(lorasSetTmp)
+            # ---------------------------------------------------------    
+            #print('dicTmp : ',(dicTmp))       
 
-                pass
+            total=v1.get('total',False)
+            if total:
+                totalMax=v1.get('totalMax',0)
+                totalMax=RandomMinMax(totalMax) 
+                l=RandomItemsCnt(dicTmp,totalMax)
+                #print('l : ',l)
+                lorasSetTmp.update(l)
+            else:
+                l=list(dicTmp.keys())
+                #print('l : ',l)
+                lorasSetTmp.update(l)
 
-            print('lorasSet : ', self.lorasSet)
-            # print('self.positive : ',self.positiveDics)
-            # print('self.negative : ',self.negativeDics)
+            for k2 in lorasSetTmp:
+                self.SetTive('Weight',dicTmp[k2])
+ 
+            # ---------------------------------------------------------
+            
+            print.Value('lorasSetTmp : ',k1,lorasSetTmp)
+            self.lorasSet=self.lorasSet.union(lorasSetTmp)
+
+            if self.configYml.get("LoraChangePrint",False):
+                print.Config('self.positiveDics : ',self.positiveDics)
+                print.Config('self.negativeDics : ',self.negativeDics)
+        print.Value('self.lorasSet : ', self.lorasSet)
 
 
+    ''' 
+    Lora 파일 목록
+    WeightLora.yml 가져오기
+    Lora 뽑음
+    '''
+    def LoraChange(self):
+        #print('[green] LoraChange start [green]')
+
+        self.LoraFileDics,\
+        self.LoraFileLists,\
+        self.LoraFileNames=\
+            GetFileDicList( 
+            Path(self.CheckpointType,self.configYml.get('LoraEtcPath','etc'),self.configYml.get('safetensorsFile')) , 
+            self.configYml.get('LoraPath'))
+        
+        # print('self.LoraFileDics : ',(self.LoraFileDics))
+        print.Value('self.LoraFileDics : ',len(self.LoraFileDics))
+
+        self.WeightLora:dict=ReadYml(Path(self.configYml.get('dataPath'),self.CheckpointType,"WeightLora.yml")) 
+
+        print.Value('self.WeightLora : ',len(self.WeightLora)) 
+
+        self.LoraChangeSubDel()
+        #print(self.WeightLora)
+        # ----------------------------
+        self.LoraChangeSubPick()
         # ----------------------------
     
     '''
@@ -365,11 +387,11 @@ class MyClass():
     def DicsChange(self):
         self.dicCheckpointYml=MergeYml(Path(self.configYml.get('dataPath'),self.CheckpointType,'checkpoint'),'*.yml')
         if self.configYml.get("checkpointYmlPrint",False):
-            print('self.dicCheckpointYml : ',dict(islice(self.dicCheckpointYml.items(), 3)))   
+            print.Config('self.dicCheckpointYml : ',dict(islice(self.dicCheckpointYml.items(), 3)))   
 
         self.dicLoraYml=MergeYml(Path(self.configYml.get('dataPath'),self.CheckpointType,'lora'),'*.yml')
         if self.configYml.get("loraYmlPrint",False):
-            print('self.loraYml : ',dict(islice(self.dicLoraYml.items(), 3)))
+            print.Config('self.loraYml : ',dict(islice(self.dicLoraYml.items(), 3)))
     
     """
     node
@@ -398,7 +420,7 @@ class MyClass():
                 Path(self.configYml.get('dataPath'),self.CheckpointType,'setupWildcard.yml')) 
         )
         if self.configYml.get("setupWildcardPrint",False):
-            print('self.setupWildcard : ',self.setupWildcard)   
+            print.Config('self.setupWildcard : ',self.setupWildcard)   
          
         self.SetTive('setup',self.setupWildcard)
 
@@ -414,7 +436,7 @@ class MyClass():
                 Path(self.configYml.get('dataPath'),self.CheckpointType,'setupWorkflow.yml')) 
         )
         if self.configYml.get("setupWorkflowPrint",False):
-            print('self.setupWorkflow : ',self.setupWorkflow)           
+            print.Config('self.setupWorkflow : ',self.setupWorkflow)           
         #print('self.setupWorkflow : ',self.setupWorkflow)           
 
     '''
@@ -545,14 +567,20 @@ class MyClass():
         positiveWildcard=",".join(lpositive)
         negativeWildcard=",".join(lnegative)
         if self.configYml.get("setWildcardPrint",False):
-            printInfo('positiveWildcard : ',positiveWildcard)
-            printInfo('negativeWildcard : ',negativeWildcard)
+            print.Config('self.positiveDics : ', self.positiveDics)
+            print.Config('self.negativeDics : ', self.negativeDics)
+            print.Config('positive : ', positive)
+            print.Config('negative : ', negative)
+            print.Config('positiveWildcard : ', positiveWildcard)
+            print.Config('negativeWildcard : ', negativeWildcard)
         self.SetWorkflow('positiveWildcard','wildcard_text',positiveWildcard) 
         self.SetWorkflow('negativeWildcard','wildcard_text',negativeWildcard) 
         self.SetWorkflow('positiveWildcard','seed',SeedInt()) 
         self.SetWorkflow('negativeWildcard','seed',SeedInt()) 
 
     def SetTive(self,numName ,dic):
+        if self.configYml.get("setTivePrint",False):
+            print.Config('SetTive : ',numName,dic)
         #self.loraNum+=1
         #s=str(self.loraNum).zfill(2)
         if dic:
@@ -570,7 +598,7 @@ class MyClass():
             # self.positiveDics.setdefault( f'{numName}{s}',{key:dic.get('positive')}) 
             # self.negativeDics.setdefault( f'{numName}{s}',{key:dic.get('negative')}) 
         else:
-            printWarn(f'SetTive no : ',numName) 
+            print.Warn(f'SetTive no : ',numName) 
             # self.positiveDics.setdefault( f'{numName}{s}',{key:None}) 
             # self.negativeDics.setdefault( f'{numName}{s}',{key:None})
     
@@ -697,10 +725,10 @@ class MyClass():
         #     self.WorkflowSet('LoraLoader',k,  )
 
     def Loop(self):
-        printGreen(' Loop start ')
+        #printBlue(' Loop start ')
         
         while True:
-            printGreen(' Loop next ')
+            #printBlue(' Loop next ')
 
             # -------------------------
             # 변경 거의 없는 설정
@@ -742,7 +770,7 @@ class MyClass():
             self.SetWildcard()
 
             if self.configYml.get("WorkflowPrint",False):
-                print('self.workflow_api : ',self.workflow_api)   
+                print.Config('self.workflow_api : ',self.workflow_api)   
             # -------------------------
             self.SetLoopMax()
             # -------------------------
@@ -751,7 +779,9 @@ class MyClass():
 {self.CheckpointLoopCnt}/{self.CheckpointLoop}, \
 {self.CharLoopCnt}/{self.CharLoop}, \
 {self.QueueLoopCnt}/{self.QueueLoop}, \
-{str(datetime.timedelta(seconds=(time.time()-self.timeStart)))}")
+{str(datetime.timedelta(seconds=(time.time()-self.timeStart)))} \
+{self.CheckpointName} \
+{self.CharName} ")
             # -------------------------
             # -------------------------
             if self.Queue():
@@ -777,7 +807,7 @@ class MyClass():
 
     def Run(self):
         try:
-            printInfo(' === start === ')
+            #printBlue(' === start === ')
             # -------------------------
             self.loop=self.Loop()
             # # -------------------------
@@ -786,7 +816,7 @@ class MyClass():
             #     next(self.loop)
 
         except KeyboardInterrupt:
-            print('KeyboardInterrupt')
+            print.Warn('KeyboardInterrupt')
             try:
                 sys.exit(130)
             except SystemExit:
@@ -794,13 +824,10 @@ class MyClass():
         except Exception:
             console.print_exception(show_locals=True) 
             tm=time.strftime('%Y%m%d-%H%M%S')
-            console.save_text(f'./console.{tm}.log')
+            os.makedirs('log', exist_ok=True)
+            console.save_text(f'./log/console.{tm}.log')
 
         finally:
-            printInfo(' === finally === ')
+            print.Info(' === finally === ')
             
-
-
-
-
 MyClass().Run()
