@@ -12,6 +12,7 @@ from libUpdate import *
 from libGetSet import *
 from libType import *
 from itertools import islice
+import fnmatch
 
 if not os.path.exists('config.yml'):
     from libData import *
@@ -41,17 +42,21 @@ class MyClass():
         self.CheckpointFileDics={}
         self.CheckpointFileLists=[]
         self.CheckpointFileNames=[] 
+
         self.CharFileDics={}
         self.CharFileLists=[]   
         self.CharFileNames=[]
+        
         self.LoraFileDics={}    
         self.LoraFileLists=[]
         self.LoraFileNames=[]
+        
         self.workflow_api=None
         self.dicCheckpointYml={}
         self.dicLoraYml={}
         self.setupWildcard={}
         self.setupWorkflow={}
+        self.typeDics={}
         self.CheckpointType=None
         self.configYml=None
         self.loraTmp=None
@@ -85,18 +90,60 @@ class MyClass():
         self.CharLoop=RandomMinMax(self.configYml.get("CharLoop"))
         self.QueueLoop=RandomMinMax(self.configYml.get("queueLoop"))
 
-    '''
-    Checkpoint 파일 목록
-    WeightCheckpoint.yml 가져오기
-    Checkpoint 뽑음
-    CheckpointWeightPer 확률로 뽑음
-    '''
+    def CheckpointFileInit(self):
+        for k in self.configYml.get('CheckpointTypes').keys():
+            CheckpointFileDics,\
+            CheckpointFileLists,\
+            CheckpointFileNames=\
+                GetFileDicList( 
+                Path(k,self.configYml.get('safetensorsFile')) , 
+                self.configYml.get('CheckpointPath'))
+        
+            print.Value('CheckpointFileDics : ',len(CheckpointFileDics))
+
+            CharFileDics,\
+            CharFileLists,\
+            CharFileNames=\
+                GetFileDicList( 
+                Path(k,self.configYml.get('LoraCharPath','char'),self.configYml.get('safetensorsFile')) , 
+                self.configYml.get('LoraPath'))         
+            
+            print.Value('CharFileDics : ',len(CharFileDics))
+
+            LoraFileDics,\
+            LoraFileLists,\
+            LoraFileNames=\
+                GetFileDicList( 
+                Path(k,self.configYml.get('LoraEtcPath','etc'),self.configYml.get('safetensorsFile')) , 
+                self.configYml.get('LoraPath'))
+            
+            print.Value('LoraFileDics : ',len(LoraFileDics))
+
+            self.typeDics[k]={
+                'CheckpointFileDics':CheckpointFileDics,
+                'CheckpointFileLists':CheckpointFileLists,
+                'CheckpointFileNames':CheckpointFileNames,
+                'CharFileDics':CharFileDics,
+                'CharFileLists':CharFileLists,
+                'CharFileNames':CharFileNames,
+                'LoraFileDics':LoraFileDics,
+                'LoraFileLists':LoraFileLists,
+                'LoraFileNames':LoraFileNames
+            }
+
+
+
     def CheckpointChange(self):
+        '''
+        Checkpoint 파일 목록
+        WeightCheckpoint.yml 가져오기
+        Checkpoint 뽑음
+        CheckpointWeightPer 확률로 뽑음
+        '''
         #print('[green] CheckpointChange start [green]')
 
         self.CheckpointType=RandomWeightCnt(self.configYml.get('CheckpointTypes'))[0]
         print.Value('self.CheckpointType : ',self.CheckpointType)
-
 
         self.CheckpointFileDics,\
         self.CheckpointFileLists,\
@@ -139,13 +186,13 @@ class MyClass():
         self.CheckpointPath=  self.CheckpointFileDics.get(self.CheckpointName)
         print.Value('self.CheckpointPath : ',(self.CheckpointPath))     
         
-    '''
-    Char 파일 목록
-    WeightChar.yml 가져오기
-    Char 뽑음
-    CharWeightPer 확률로 뽑음
-    '''
     def CharChange(self):
+        '''
+        Char 파일 목록
+        WeightChar.yml 가져오기
+        Char 뽑음
+        CharWeightPer 확률로 뽑음
+        '''
         #printInfo('CharChange start')
 
         self.CharFileDics,\
@@ -196,7 +243,6 @@ class MyClass():
             print.Value('self.CharName : ',self.CharName)  
             self.CharPath=  self.CharFileDics.get(self.CharName)     
             print.Value('self.CharPath : ',self.CharPath)  
-
 
     def LoraChangeSubDel(self):
         # 없는거 제거
@@ -766,11 +812,6 @@ class MyClass():
             # -------------------------
             # 변경 거의 없는 설정
             self.configYml=ReadYml("config.yml") 
-            if self.configYml.get('수정 안해서 작동 안시킴',False):
-                print.Warn('---------------------------')
-                print.Warn('config.yml 끝까지 보세요')
-                print.Warn('---------------------------')
-                exit(0)
 
             self.loraNum=0
 
@@ -845,13 +886,128 @@ class MyClass():
 
             if self.CheckpointLoopCnt > self.CheckpointLoop:
                 self.CheckpointLoopCnt=0
-
     
+
+    # TODO: 업뎃 구현
+    def FileObserverCallback(self, event):
+        '''
+        ../ComfyU-auto-script_data/IL/lora/char.yml
+        '''
+        print.Value('event',event)
+        path=Path(event.src_path)
+        #print('rel.parts',rel.parts) #('IL', 'checkpoint', '12341234.yml')
+        #print(fnmatch.fnmatch(path,dataPath+'/*'))
+        print.Value('path',path)
+        CheckpointTypes=self.configYml.get('CheckpointTypes').keys()
+        configPath=self.configYml.get('dataPath')
+        print.Value('dataPath',configPath)
+        if fnmatch.fnmatch(path,configPath+'/*'):
+            rel = path.relative_to(configPath)
+            print.Value('rel.parts',rel.parts)
+            if rel.parts[0] in CheckpointTypes:
+                if rel.parts[1]=='setupWildcard.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if rel.parts[1]=='setupWorkflow.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if rel.parts[1]=='WeightChar.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if rel.parts[1]=='WeightCheckpoint.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if rel.parts[1]=='WeightLora.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if rel.parts[1]=='workflow_api.yml':
+                    print.Value('lora', path.parts)
+                    return
+                if len(rel.parts)!=3:
+                    print.Warn('dataPath over',path,rel)
+                    return
+                if rel.parts[1]=='checkpoint':
+                    print.Value('checkpoint', path.parts)
+                    return
+                if rel.parts[1]=='lora':
+                    print.Value('lora', path.parts)
+                    return
+            if rel.parts[0]=='setupWildcard.yml':
+                print.Value('lora', path.parts)
+                return
+            if rel.parts[0]=='setupWorkflow.yml':
+                print.Value('lora', path.parts)
+                return
+            print.Warn('dataPath not', path.parts)
+            return
+        if event.event_type not in ['deleted','created']:
+            print.Value('safetensors',path.parts)
+            return
+        configPath=self.configYml.get('CheckpointPath')
+        print.Value('CheckpointPath configPath',configPath)
+        if fnmatch.fnmatch(path,configPath+'/*.safetensors'):
+            rel = path.relative_to(configPath)#('IL', '12341234.safetensors')
+            if rel.parts[0] not in CheckpointTypes:
+                print.Warn('CheckpointPath type', path.parts)
+                return
+            if len(rel.parts)!=2:
+                print.Warn('CheckpointPath over',path,rel)
+                return
+            else:
+                print.Value('CheckpointPath',path,rel)                
+                return
+        configPath=self.configYml.get('LoraPath')
+        print.Value('LoraPath configPath',configPath)
+        if fnmatch.fnmatch(path,configPath+'/*.safetensors'):
+            rel = path.relative_to(configPath)
+            if rel.parts[0] not in CheckpointTypes:
+                print.Warn('LoraPath type', path.parts)
+                return
+            print.Value('LoraPath',path,rel)
+            if len(rel.parts)!=3:
+                print.Warn('LoraPath over',path,rel)
+                return
+            else:
+                print.Value('LoraPath',path,rel)                
+                if rel.parts[1]=='char':
+                    print.Value('LoraPath char',path,rel)                
+                    return
+                if rel.parts[1]=='etc':
+                    print.Value('LoraPath etc',path,rel)                
+                    return
+                print.Warn('LoraPath not',path,rel)                
+                return
+
+
         
 
+
+
+
+            
+
+
     def Run(self):
+
         try:
             #printBlue(' === start === ')
+            # -------------------------
+            self.configYml=ReadYml("config.yml") 
+            if self.configYml.get('수정 안해서 작동 안시킴',False):
+                print.Warn('---------------------------')
+                print.Warn('config.yml 끝까지 보세요')
+                print.Warn('---------------------------')
+                exit(0)
+            # -------------------------
+            fileObserver=FileObserver(
+                [
+                    self.configYml.get('dataPath'),
+                    self.configYml.get('CheckpointPath'),
+                    self.configYml.get('LoraPath'),
+                 ]
+                , self.FileObserverCallback
+            )
+            fileObserver.start_watching()
             # -------------------------
             self.loop=self.Loop()
             # # -------------------------
