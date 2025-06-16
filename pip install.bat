@@ -14,6 +14,7 @@ rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install onnx
 rem .\python_embeded\python.exe -s -m pip install torch-directml 
 rem ..\python_embeded\python.exe -s -m pip install urlparse
  ..\python_embeded\python.exe -s -m pip install --upgrade rich
+ ..\python_embeded\python.exe -s -m pip install ruamel.yaml
  ..\python_embeded\python.exe -s -m pip show rich
 
 

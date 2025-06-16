@@ -11,7 +11,9 @@ from libPrint import *
 from libUpdate import *
 from libGetSet import *
 from libType import *
+from libData import *
 from itertools import islice
+
 
 class MyClass():
 
@@ -130,7 +132,7 @@ class MyClass():
                 self.CheckpointName=random.choice(self.SubCheckpoint)
             else:
                 self.CheckpointName=random.choice(self.CheckpointFileNames)
-                printWarn('no WeightCheckpoint ')  
+                print.Warn('no WeightCheckpoint ')  
 
         print.Value('self.CheckpointName : ',(self.CheckpointName))     
         self.CheckpointPath=  self.CheckpointFileDics.get(self.CheckpointName)
@@ -347,9 +349,9 @@ class MyClass():
             print.Value('lorasSetTmp : ',k1,lorasSetTmp)
             self.lorasSet=self.lorasSet.union(lorasSetTmp)
 
-            if self.configYml.get("LoraChangePrint",False):
-                print.Config('self.positiveDics : ',self.positiveDics)
-                print.Config('self.negativeDics : ',self.negativeDics)
+        if self.configYml.get("LoraChangePrint",False):
+            print.Config('self.positiveDics : ',self.positiveDics)
+            print.Config('self.negativeDics : ',self.negativeDics)
         print.Value('self.lorasSet : ', self.lorasSet)
 
 
@@ -562,8 +564,14 @@ class MyClass():
         lpositive=list(positive.values())
         lnegative=list(negative.values())
         if RandomWeight(self.configYml.get("shuffleWildcard",[False,True])):
+            if self.configYml.get("shuffleWildcardPrint",False):
+                print.Config('positive : ',lpositive)
+                print.Config('negative : ',lnegative)
             random.shuffle(lpositive)
             random.shuffle(lnegative)
+            if self.configYml.get("shuffleWildcardPrint",False):
+                print.Config('positive : ',lpositive)
+                print.Config('negative : ',lnegative)
         positiveWildcard=",".join(lpositive)
         negativeWildcard=",".join(lnegative)
         if self.configYml.get("setWildcardPrint",False):
@@ -733,6 +741,12 @@ class MyClass():
             # -------------------------
             # 변경 거의 없는 설정
             self.configYml=ReadYml("config.yml") 
+            if self.configYml.get('수정 안해서 작동 안시킴',False):
+                print.Warn('---------------------------')
+                print.Warn('config.yml 끝까지 보세요')
+                print.Warn('---------------------------')
+                exit(0)
+
             self.loraNum=0
 
             if self.CheckpointLoopCnt==0:
@@ -805,8 +819,12 @@ class MyClass():
             if self.CheckpointLoopCnt > self.CheckpointLoop:
                 self.CheckpointLoopCnt=0
 
+    
+        
+
     def Run(self):
         try:
+            CreateDataFileDir()
             #printBlue(' === start === ')
             # -------------------------
             self.loop=self.Loop()
@@ -822,10 +840,10 @@ class MyClass():
             except SystemExit:
                 os._exit(130)
         except Exception:
-            console.print_exception(show_locals=True) 
-            tm=time.strftime('%Y%m%d-%H%M%S')
-            os.makedirs('log', exist_ok=True)
-            console.save_text(f'./log/console.{tm}.log')
+            print.exception(show_locals=True) 
+            # tm=time.strftime('%Y%m%d-%H%M%S')
+            # os.makedirs('log', exist_ok=True)
+            # console.save_text(f'./log/console.{tm}.log')
 
         finally:
             print.Info(' === finally === ')

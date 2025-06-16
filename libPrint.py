@@ -65,6 +65,10 @@ class PrintHelper:
         self.console_screen.log(*args, **kwds)
         self.console_log.log(*args, **kwds)
 
+    def exception(self,  *args, **kwds):
+        self.console_screen.print_exception(*args, **kwds)
+        self.console_log.print_exception(*args, **kwds)
+
     def Color(self, c, msg, *a, _stack_offset=3):
         self(f'[{c}]{msg}[/{c}]', *a, _stack_offset=_stack_offset)
 
@@ -91,10 +95,10 @@ class PrintHelper:
 
 print = PrintHelper(console_screen,console_log)
 
-print.Blue('printBlue test')
-print.Red('printRed test')  
-print.Green('printGreen test')
-print.Yellow('printYellow test') 
-print.Magenta('printMagenta test')
-print.Cyan('printCyan test')
-print.White('printWhite test')
+# print.Blue('printBlue test')
+# print.Red('printRed test')  
+# print.Green('printGreen test')
+# print.Yellow('printYellow test') 
+# print.Magenta('printMagenta test')
+# print.Cyan('printCyan test')
+# print.White('printWhite test')
