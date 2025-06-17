@@ -94,7 +94,7 @@ class FileHandler(FileSystemEventHandler):
         else:
             return False
     
-class FileObserver(Observer):
+class FileObserverHandler(Observer):
     def __init__(self, path, callback):
         super().__init__()
         self.path = path
@@ -121,3 +121,28 @@ class FileObserver(Observer):
         self.stop()
         self.join()
         print.Info('Stopped watching for changes ',self.path)
+    
+class FileObserver(Observer):
+    def __init__(self):
+        super().__init__()
+        self.paths =[]
+                
+    def symlink(self,path,event_handler, recursive=True):
+        self.schedule(event_handler, path, recursive=recursive)
+        self.paths.append(path)
+        if recursive:
+            for sub in Path(path).rglob("*"):
+                if sub.is_dir() and sub.is_symlink():
+                    sub=sub.as_posix()
+                    self.schedule(event_handler, sub, recursive=recursive)
+                    self.paths.append(sub)
+
+    def start_watching(self):
+        self.start()
+        print.Info(f'Watching for changes ', self.paths)
+
+    def stop_watching(self):
+        print.Info('Stopping watching for changes ',self.paths)
+        self.stop()
+        self.join()
+        print.Info('Stopped watching for changes ',self.paths)

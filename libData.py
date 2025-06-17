@@ -4,15 +4,15 @@ from libPrint import *
 
 configYml="""
 # --- 경로 설정 ---
-dataPath: ../ComfyU-auto-script-data  # 설정파일 폴더
-CheckpointPath: ../ComfyUI/models/checkpoints # Checkpoint 폴더
-LoraPath: ../ComfyUI/models/Loras # Lora 폴더
-LoraEtcPath: etc # LoraPath 안의 etc 폴더
-LoraCharPath: char # LoraPath 안의 char 폴더
-CheckpointTypes: # Checkpoint 및 Lora 종류. 뒤의 숫자는 사용할 가중치.
+dataPath: ../ComfyU-auto-script-data  # 설정파일 폴더. 변경시 재실행 필요.
+CheckpointPath: ../ComfyUI/models/checkpoints # Checkpoint 폴더. 변경시 재실행 필요.
+LoraPath: ../ComfyUI/models/Loras # Lora 폴더. 변경시 재실행 필요.
+LoraEtcPath: etc # LoraPath 안의 etc 폴더. 변경시 재실행 필요.
+LoraCharPath: char # LoraPath 안의 char 폴더. 변경시 재실행 필요.
+CheckpointTypes: # Checkpoint 및 Lora 종류. 뒤의 숫자는 사용할 가중치. 키 추가시 재실행 필요. 가중치는 실시간 반영
   IL: 2
   Pony: 1
-safetensorsFile: '*.safetensors' # Checkpoint 및 Lora 파일 확장자
+safetensorsFile: '*.safetensors' # Checkpoint 및 Lora 파일 확장자.
 workflow_api: workflow_api.yml # ComfyUI 로 보낼 workflow api 파일. dataPath+CheckpointTypes에 넣음
 url: http://127.0.0.1:8188/prompt # ComfyUI 로 보낼 url. ComfyUI가 실행중이어야 함
 # --- 반복 설정 ---
