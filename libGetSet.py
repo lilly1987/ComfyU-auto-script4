@@ -18,7 +18,7 @@ def Get(d,default, *keys):
         #printWarn('Get no key : ',key , *keys)  
         return default
 
-def Set(d,value, *keys):
+def SetExists(d,value, *keys):
     """ 중첩 dict에서 keys가 존재할 경우에만 업데이트. 
     없을경우 None 반환. 
     있을경우 {키:값}을 포함하는 dict 반환
@@ -38,6 +38,22 @@ def Set(d,value, *keys):
         #printWarn('Set no key : ',key , *keys)  
         return None
 
+def Set(dic, value, *deep):
+    """'*deep' 계층이 없더라도 'value'을 추가 및 업데이트"""
+    # 계층이 제공되지 않은 경우
+    if not deep: 
+        return
+        dic["default"] = value
+    else:
+        temp = dic
+        # 마지막 키를 제외한 모든 계층 순회
+        for key in deep[:-1]:  
+            # 존재하지 않는 키면 자동 생성
+            temp = temp.setdefault(key, {})  
+        # 마지막 키에 값 저장
+        temp[deep[-1]] = value  
+    return dic
+
 # data = {"a": {"b": {"c": 10}}}
 # print(Get(data, 20, "a", "b", "c"))
 # print(Get(data, 20, "a", "b", "d"))
@@ -47,3 +63,7 @@ def Set(d,value, *keys):
 # print(Set(data, 20, "a", "b", "c"))
 # print(Set(data, 20, "a", "d", "c"))
 # print(data)  # {'a': {'b': {'c': 20}}}
+
+#d={}
+
+#Set(d, 20, "a", "b", "c")
