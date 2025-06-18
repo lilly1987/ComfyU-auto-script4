@@ -289,9 +289,15 @@ class MyClass():
             print.Value(tag+'Dics',CheckpointType,len(FileDics))
             print.Value(tag+'Lists',CheckpointType,len(FileLists))
             print.Value(tag+'Names',CheckpointType,len(FileNames))
+        return \
+        FileDics,\
+        FileLists,\
+        FileNames
 
     def GetSafetensorsCheckpoint(self,CheckpointType):
-        self.GetSafetensors(CheckpointType, 
+        FileDics,\
+        FileLists,\
+        FileNames=self.GetSafetensors(CheckpointType, 
                             '', 
                             'CheckpointPath',
                             'CheckpointFileDics',
@@ -299,6 +305,9 @@ class MyClass():
                             'CheckpointFileNames',
                             'Checkpoint'
                             )    
+        if not FileDics or not FileLists or not FileNames :
+            print.Err('Checkpoint 파일 없음',CheckpointType)
+            exit()
 
     def GetSafetensorsChar(self,CheckpointType):
         self.GetSafetensors(CheckpointType, 
