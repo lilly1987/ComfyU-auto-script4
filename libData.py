@@ -7,8 +7,8 @@ configYml="""
 dataPath: ../ComfyU-auto-script-data  # 설정파일 폴더. 변경시 재실행 필요.
 CheckpointPath: ../ComfyUI/models/checkpoints # Checkpoint 폴더. 변경시 재실행 필요.
 LoraPath: ../ComfyUI/models/Loras # Lora 폴더. 변경시 재실행 필요.
-LoraEtcPath: etc # LoraPath 안의 etc 폴더. 변경시 재실행 필요.
-LoraCharPath: char # LoraPath 안의 char 폴더. 변경시 재실행 필요.
+LoraEtcPath: etc # LoraPath / etc 폴더. 변경시 재실행 필요. 하위폴더는 인식 안함.
+LoraCharPath: char # LoraPath 안의 char 폴더. 변경시 재실행 필요. 하위폴더는 인식 안함.
 CheckpointTypes: # Checkpoint 및 Lora 종류. 뒤의 숫자는 사용할 가중치. 키 추가시 재실행 필요. 가중치는 실시간 반영
   IL: 2
   Pony: 1
@@ -72,7 +72,7 @@ negative:
     tag2: low quality, worst quality, bad quality, worst quality, lowres, normal quality,
 """
 setupWorkflow="""
-charDefult: # 구현됨
+charDefault: # 구현됨
   A: 
   - 1.125
   - 0.875
@@ -87,7 +87,7 @@ charDefult: # 구현됨
   - 0.5
   - 0.75
   - 1.0
-loraDefult: # 구현됨
+loraDefault: # 구현됨
   A: 
   - 1.125
   - 0.875

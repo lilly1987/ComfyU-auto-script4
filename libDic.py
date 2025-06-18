@@ -1,6 +1,6 @@
 from libPrint import *
 
-def Get(d,default, *keys):
+def Get(d, *keys,default=None):
     """ 중첩 dict에서 keys가 존재할 경우에만 얻음. 없을경우 None 반환 """
     current = d
     for key in keys[:-1]:
@@ -18,7 +18,7 @@ def Get(d,default, *keys):
         #printWarn('Get no key : ',key , *keys)  
         return default
 
-def SetExists(d,value, *keys):
+def SetExists(d:dict,value, *keys):
     """ 중첩 dict에서 keys가 존재할 경우에만 업데이트. 
     없을경우 None 반환. 
     있을경우 {키:값}을 포함하는 dict 반환
@@ -37,6 +37,26 @@ def SetExists(d,value, *keys):
         #printErr('Get no key : ',d)  
         #printWarn('Set no key : ',key , *keys)  
         return None
+
+
+def Pop(d:dict, *keys,default=None):
+    """ 중첩 dict에서 keys가 존재할 경우에만 업데이트. 
+    없을경우 'default=None' 반환. 
+    있을경우 '값' 반환
+    """
+    current = d
+    for key in keys[:-1]:  # 마지막 키 전까지 이동
+        current = current.get(key)
+        if current is None or not isinstance(current, dict):  # 키가 없거나 dict이 아니면 종료
+            #printErr('Set no key : ',d)  
+            #printWarn('Set no key : ',key, *keys)            
+            return default
+    if keys[-1] in current:  # 마지막 키가 존재하면 업데이트
+        return current[keys[-1]].pop
+    else:        
+        #printErr('Get no key : ',d)  
+        #printWarn('Set no key : ',key , *keys)  
+        return default
 
 def Set(dic, value, *deep):
     """'*deep' 계층이 없더라도 'value'을 추가 및 업데이트"""

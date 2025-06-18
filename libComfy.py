@@ -5,15 +5,17 @@ from rich.progress import Progress
 from urllib import request , error
 from urllib.error import URLError, HTTPError
         
+progress_run=None
+
 def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
     try:
+        global progress_run
         with Progress() as progress:
-            
+            progress_run=progress
             while True:
                 if progress.finished:
                     task = progress.add_task("waiting", total=60)
                     
-                
                 req =  request.Request(url)        
                 while True:
                     try:
@@ -39,9 +41,9 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
                     break
                 progress.update(task, advance=1)
                 time.sleep(1)
-                
+        progress_run=None        
     except Exception as e:     
-        console.print_exception()
+        print.print_exception()
         return True
     else:
         return False
@@ -68,7 +70,7 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
         print(f"send" )
         
     except Exception as e:     
-        console.print_exception()
+        print.print_exception()
         return True
     else:
         return False

@@ -24,7 +24,7 @@ def ReadYml(n):
             #print(film)
             return film
         except Exception:
-            console.print_exception(show_locals=True) 
+            print.print_exception(show_locals=True) 
             raise
 
 def MergeYml(path,file):

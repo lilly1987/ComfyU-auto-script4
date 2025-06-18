@@ -3,7 +3,9 @@ from libPrint import *
 
 def GetFileDicList(path:str,dir="."):
     """
-    
+    dic={확장자제외 파일명:파일경로}
+    lists=[파일경로]
+    names=[확장자제외 파일명]
     """
     paths=GetFileListPath(path,dir)
     names=[i.stem for i in paths]
@@ -60,10 +62,10 @@ def get_workflow_api_text(path):
         return f.read()
     
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import *
 
 class FileHandler(FileSystemEventHandler):
-    def __init__(self, callback):
+    def __init__(self, callback:FileSystemEvent):
         super().__init__()
         self.callback = callback
         self.last_event_time =0.0

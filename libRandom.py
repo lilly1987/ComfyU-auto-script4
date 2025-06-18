@@ -27,7 +27,7 @@ def RandomMinMax(v):
         elif all(isinstance(item, int) for item in v): 
             v=random.randint(min(v),max(v))
         else:
-            printErr(" randomValue err : ", v)
+            print.Err(" randomValue err : ", v)
     return v
 
 def RandomWeight(i):
@@ -44,7 +44,7 @@ def RandomWeight(i):
 def RandomDicWeight(d, w, c=1, result=[]):
     t = {k: v[w] for k, v in d.items() if w in v}
     if not t:
-        printErr("RandomdicWeight err: ", dict(islice(d, 3)), w, c)
+        print.Err("RandomdicWeight err: ", dict(islice(d, 3)), w, c)
         return result
     result = random.choices(list(t.keys()), weights=list(t.values()), k=c)
     return result
@@ -57,7 +57,7 @@ def RandomItemsCnt(items, c=1):
     if isinstance(items, dict):
         items=list(items.keys())
     if not isinstance(items, (list, tuple)):
-        printErr("RandomItemsCnt err: items is not list or tuple", items)
+        print.Err("RandomItemsCnt err: items is not list or tuple", items)
         return []
     if len(items) > c:
         items=random.sample(items, c)        
