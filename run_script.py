@@ -28,6 +28,7 @@ class MyClass():
         # ---------------------
         self.configYml=None
         self.CheckpointTypes=None
+        self.isFirst=True
         # ---------------------
         self.typeDics={}
         # ---------------------
@@ -403,8 +404,27 @@ class MyClass():
         CheckpointWeightPer 확률로 뽑음
         '''
         #print('[green] CheckpointChange start [green]')
+        CheckpointTypes=self.configYml.get('CheckpointTypes')
+        if self.isFirst:
+            self.isFirst=False
+            safetensorsStart=self.configYml.get('safetensorsStart')
+            if safetensorsStart:
+                safetensorsStart=Path(safetensorsStart)
+                if len(safetensorsStart.parts)==2 and \
+                    safetensorsStart.parts[0] in CheckpointTypes:
 
-        self.CheckpointType=RandomWeightCnt(self.configYml.get('CheckpointTypes'))[0]
+                    print.Value('safetensorsStart',safetensorsStart.parts)
+                    self.CheckpointType=safetensorsStart.parts[0]
+                    print.Value('self.CheckpointType : ',self.CheckpointType)
+                    self.CheckpointName=safetensorsStart.stem
+                    print.Value('self.CheckpointName : ',(self.CheckpointName))     
+                    self.CheckpointPath=  self.GetNow('CheckpointFileDics',self.CheckpointName)
+                    print.Value('self.CheckpointPath : ',(self.CheckpointPath))   
+                    return
+
+        # ----------------------------
+
+        self.CheckpointType=RandomWeightCnt(CheckpointTypes)[0]
         print.Value('self.CheckpointType : ',self.CheckpointType)
        
         self.CheckpointWeightPer=self.configYml.get('CheckpointWeightPer',0.5)
@@ -577,7 +597,7 @@ class MyClass():
     
     def SetWorkflow(self,node,key,value):
         """
-        self.workflow_api
+        return SetExists(self.GetNow('workflow_api'),value,node,"inputs",key)
         """
         #self.workflow_api.get(k1).get("inputs")[k2]=v
         #return Set(self.workflow_api,value,node,"inputs",key)
@@ -615,7 +635,34 @@ class MyClass():
             #print(c,k,v)           
             self.SetWorkflow(node,k,v)
 
+    def SetWorkflowFuncRandom3(self,node, list,func=None,randonFunc=None ): 
+        '''
+        node 에 list 항목을 알아서 입력
+        for k in list:
+        v=func(node,k)
+        v=randonFunc(v)
+        self.SetWorkflow(node,k,v)
+        '''
+        for k in list:
+            if func:
+                v=func(node,k)            
+            #print(node,k,v)    
+            if randonFunc:
+                v=randonFunc(v)
+            #print(node,k,v)    
+            if not v:
+                #printWarn('SetWorkflowSet no value : ',node,k) 
+                continue       
+            self.SetWorkflow(node,k,v)
+
     def SetWorkflowFuncRandom(self,node, list,func=None,randonFunc=None ): 
+        '''
+        node 에 list 항목을 알아서 입력
+        for k in list:
+        v=func(k) 
+        v=randonFunc(v)
+        self.SetWorkflow(node,k,v)
+        '''
         for k in list:
             if func:
                 v=func(k)            
@@ -676,6 +723,20 @@ class MyClass():
             self.SetWorkflowFuncRandom2(k,l,RandomMinMax)
             l=GetTypeList(v.get("inputs"),(str,  bool))
             self.SetWorkflowFuncRandom2(k,l,RandomWeight)
+
+    def SetDicCheckpointYmlToWorkflowApiSub(self,node,k):
+        return self.GetNow('dicCheckpointYml',self.CheckpointName,node,k) 
+
+    def SetDicCheckpointYmlToWorkflowApi(self):
+        dicCheckpointYml:dict=self.GetNow('dicCheckpointYml',self.CheckpointName)
+        #print.Value('dicCheckpointYml',dicCheckpointYml)
+        workflow_api=self.GetNow('workflow_api')
+        for k,v in dicCheckpointYml.items():
+            if k in workflow_api:
+                l=GetTypeList(Get(workflow_api,k,"inputs"),(int,  float),(bool,))
+                self.SetWorkflowFuncRandom3(k,l,self.SetDicCheckpointYmlToWorkflowApiSub,RandomMinMax)
+                l=GetTypeList(Get(workflow_api,k,"inputs"),(str,  bool))
+                self.SetWorkflowFuncRandom3(k,l,self.SetDicCheckpointYmlToWorkflowApiSub,RandomWeight)
 
     def SetSaveImage(self): 
         tm=time.strftime('%Y%m%d-%H%M%S')
@@ -783,7 +844,8 @@ class MyClass():
     def SetLora(self):
         LoraLoaderNext=LoraLoader=self.GetNow('workflow_api','LoraLoader')
         LoraLoaderNextKey=LoraLoaderKey='LoraLoader'
-        
+        ModelSamplingDiscrete=self.GetWorkflow(LoraLoaderNextKey,'model')[0]
+        CheckpointLoaderSimple=self.GetWorkflow(LoraLoaderNextKey,'clip')[0]
         self.SetTive('Lora',{},True)
 
         for self.loraTmp in self.lorasSet:
@@ -800,8 +862,8 @@ class MyClass():
             LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
             self.SetNow(LoraLoaderTmp,'workflow_api',LoraLoaderTmpKey)
 
-            self.GetWorkflow(LoraLoaderTmpKey,'model')[0]="CheckpointLoaderSimple"
-            self.GetWorkflow(LoraLoaderTmpKey,'clip')[0]="CheckpointLoaderSimple"
+            self.GetWorkflow(LoraLoaderTmpKey,'model')[0]=ModelSamplingDiscrete
+            self.GetWorkflow(LoraLoaderTmpKey,'clip')[0]=CheckpointLoaderSimple
             # LoraLoaderTmp['inputs']['model'][0]="CheckpointLoaderSimple"
             # LoraLoaderTmp['inputs']['clip'][0]="CheckpointLoaderSimple"
             self.SetWorkflow(LoraLoaderTmpKey,'seed',SeedInt()) 
@@ -868,11 +930,21 @@ class MyClass():
         self.QueueLoop=RandomMinMax(self.configYml.get("queueLoop"))
 
     def GetNow(self,*k,default=None):
+        '''
+        return Get(self.typeDics,self.CheckpointType,*k,default=default)
+        '''
         return Get(self.typeDics,self.CheckpointType,*k,default=default)
 
     def SetNowExists(self,value,*k):
+        '''
         return SetExists(self.typeDics,value,self.CheckpointType,*k)
+        '''
+        return SetExists(self.typeDics,value,self.CheckpointType,*k)
+    
     def SetNow(self,value,*k):
+        '''        
+        return Set(self.typeDics,value,self.CheckpointType,*k)
+        '''
         return Set(self.typeDics,value,self.CheckpointType,*k)
 
     def Queue(self):
@@ -927,9 +999,10 @@ class MyClass():
             self.SetCheckpointLoaderSimple()
             self.SetSaveImage()
             self.SetKSampler()
-            #self.SetEmptyLatentImage()
-            #self.SetVAELoader()
-            #self.SetFaceDetailer()
+            #self.SetEmptyLatentImage() # SetSetupWorkflowToWorkflowApi
+            #self.SetVAELoader() # SetSetupWorkflowToWorkflowApi
+            #self.SetFaceDetailer() # SetSetupWorkflowToWorkflowApi
+            self.SetDicCheckpointYmlToWorkflowApi()
             self.SetChar()
             self.SetLora()
 
