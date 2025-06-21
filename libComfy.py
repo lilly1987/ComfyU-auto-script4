@@ -43,7 +43,7 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
                 time.sleep(1)
         progress_run=None        
     except Exception as e:     
-        print.print_exception()
+        print.exception()
         return True
     else:
         return False
@@ -70,7 +70,7 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
         print(f"send" )
         
     except Exception as e:     
-        print.print_exception()
+        print.exception()
         return True
     else:
         return False
