@@ -153,6 +153,9 @@ class MyClass():
         #self.typeDics[CheckpointType]['WeightLora']=WeightLora
         Set(self.typeDics,WeightLora,CheckpointType,'WeightLora')
         self.GetWeightLoraDel(CheckpointType)
+        WeightLora=Get(self.typeDics,CheckpointType,'WeightLora')
+        print.Value('WeightLora : ',CheckpointType,len(WeightLora)) 
+
 
     def GetWeightLoraDel(self,CheckpointType):
         '''
@@ -160,6 +163,7 @@ class MyClass():
         '''        
         LoraFileNames=Get(self.typeDics,CheckpointType,'LoraFileNames')
         WeightLora=Get(self.typeDics,CheckpointType,'WeightLora')
+        noSet={}
         # 없는거 제거
         for k1,v1 in list(WeightLora.items()):
             #print('LoraChange : ',k , v.get('cnt')) 
@@ -168,18 +172,18 @@ class MyClass():
             for k2,v2 in list(dic.items()):
 
                 weight=v2.get('weight')
-                per=v2.get('per')
-                if self.configYml.get('LoraChangeWarnPrint',False):
-                    print.Warn('LoraChange no7 : ',k2 ,weight , per) 
+                per=v2.get('per') 
+                # if self.configYml.get('LoraChangeWarnPrint',False):
+                #     print.Value('LoraChange w,p : ',k2 ,weight , per) 
                 if not weight and not per: 
-                    if self.configYml.get('LoraChangeNoPrint',False):
-                        print.Warn('LoraChange no7 : ',k2 ) 
+                    # if self.configYml.get('LoraChangeNoPrint',False):
+                    #     print.Warn('LoraChange no7 : ',k2 ) 
                     dic.pop(k2)
                     continue
 
                 loras=v2.get('loras',{})
-                if self.configYml.get('LoraChangeWarnPrint',False):
-                    print.Warn('LoraChange no6 : ',len(loras)) 
+                # if self.configYml.get('LoraChangeWarnPrint',False):
+                #     print.Warn('LoraChange no6 : ',len(loras)) 
                 
                 #loras = {k3: v3 for k3, v3 in loras.items() if k3 in self.LoraFileNames}
                 if isinstance(loras, dict):
@@ -188,6 +192,7 @@ class MyClass():
                         if k3 in LoraFileNames:
                             lorasTmp[k3]=v3
                         else:
+                            logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, {k3} ')
                             if self.configYml.get('LoraChangeNoPrint',False):
                                 print.Warn('LoraChange no6 : ',k3 )
                 elif isinstance(loras, list):
@@ -196,6 +201,7 @@ class MyClass():
                         if k3 in LoraFileNames:
                             lorasTmp.append(k3)
                         else:
+                            logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, {k3} ')
                             if self.configYml.get('LoraChangeWarnPrint',False):
                                 print.Warn('LoraChange no5 : ',k3 )
                 elif isinstance(loras, str):
@@ -203,14 +209,17 @@ class MyClass():
                     if k3 in LoraFileNames:
                         lorasTmp=(k3)
                     else:
+                        logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, {k3} ')
                         if self.configYml.get('LoraChangeWarnPrint',False):
                             print.Warn('LoraChange no4 : ',k3 )
                 else:
-                    lorasTmp=None
+                    lorasTmp=None                    
+                    logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2} ')
                     if self.configYml.get('LoraChangeWarnPrint',False):
                         print.Warn('LoraChange no3 : ',k3 )
 
                 if not lorasTmp: 
+                    logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2} ')
                     if self.configYml.get('LoraChangeWarnPrint',False):
                         print.Warn('LoraChange no2 : ',k2 ) 
                     dic.pop(k2)
@@ -264,8 +273,14 @@ class MyClass():
             print.Config('loraYml : ',dict(islice(dicLoraYml.items(), 3)))
         self.typeDics[CheckpointType]['dicLoraYml']=dicLoraYml
 
-    def GetSafetensors(self,CheckpointType,path,
-                       exPath:str,Dics:str,Lists:str,Names:str,tag):
+    def GetSafetensors(self,
+                       CheckpointType,
+                       path,
+                       exPath:str,
+                       Dics:str,
+                       Lists:str,
+                       Names:str,
+                       tag):
         FileDics,\
         FileLists,\
         FileNames=\
@@ -288,7 +303,7 @@ class MyClass():
         else:
             print.Value(tag+'Dics',CheckpointType,len(FileDics))
             print.Value(tag+'Lists',CheckpointType,len(FileLists))
-            print.Value(tag+'Names',CheckpointType,len(FileNames))
+            print.Value(tag+'Names',CheckpointType,len(FileNames),FileNames[:3])
         return \
         FileDics,\
         FileLists,\
@@ -318,36 +333,41 @@ class MyClass():
                             'CharFileNames',
                             'Char'
                             )
+        CharFileNames=Get(self.typeDics,CheckpointType,'CharFileNames')
+        print.Value('CharFileNames',CheckpointType,CharFileNames[0:3])
         
     def GetSafetensorsEtc(self,CheckpointType):
         self.GetSafetensors(CheckpointType,
-                            self.configYml.get('LoraCharPath','etc'),
+                            self.configYml.get('LoraEtcPath','etc'),
                             'LoraPath',
                             'LoraFileDics',
                             'LoraFileLists',
                             'LoraFileNames',
                             'Lora'
                             )
+        
+        LoraFileNames=Get(self.typeDics,CheckpointType,'LoraFileNames')
+        print.Value('LoraFileNames',CheckpointType,LoraFileNames[0:3])
 
     def UpdateSafetensors(
             self,path:Path,CheckpointType:str,event_type:str,
             config:str,Dics:str,Names:str,Lists:str):
-        print.Value(path)
+        #print.Value(path)
         rpath=path.relative_to(self.configYml.get(config) )
-        print.Value(rpath)
+        #print.Value(rpath)
         name=rpath.stem
-        print.Value(name)
+        print.Value(path,rpath,name)
         FileDics=Get(self.typeDics,CheckpointType,Dics,default={})
         FileNames=Get(self.typeDics,CheckpointType,Names,default=[])
         FileLists=Get(self.typeDics,CheckpointType,Lists,default=[])
-        if event_type =='created':
+        if event_type =='deleted' or event_type =='modified':
+            FileDics.pop(name,None)
+            FileNames.pop(name,None)
+            FileLists.pop(rpath,None)
+        if event_type =='created' or event_type =='modified':
             FileDics[name]=rpath
             FileNames.append(name)
             FileLists.append(rpath)
-        if event_type =='deleted':
-            FileDics.pop(name)
-            FileNames.pop(name)
-            FileLists.pop(rpath)
 
     def UpdateSafetensorsChar(self,path:Path,CheckpointType:str,event_type:str):
         self.UpdateSafetensors(path,CheckpointType,event_type, 
@@ -459,8 +479,10 @@ class MyClass():
 
     def LoraChangeSubPick(self):
         self.lorasSet=set() 
-        
+        WeightLora=self.GetNow('WeightLora')
+        # print('WeightLora : ',WeightLora)       
         for k1,v1 in self.GetNow('WeightLora').items():
+            print.Value('LoraChangeSubPick : ',k1,len(v1))
             dic=v1.get('dic')
             dicTmp={}
             lorasSetTmp=set() 
@@ -488,7 +510,6 @@ class MyClass():
                         #self.SetTive('Weight',v2)
                         perCnt+=1
  
-                #print('lorasListTmp : ',lorasSetTmp)
                 #self.lorasSet=self.lorasSet.union(lorasSetTmp)
             # ---------------------------------------------------------
             weight=v1.get('weight',False)            
@@ -496,18 +517,15 @@ class MyClass():
                 weightMax=v1.get('weightMax',0)
                 weightMax=RandomMinMax(weightMax) 
                 lorasKeySetTmp=set(RandomDicWeight(dic,'weight',weightMax))
-                #print('LoraChangeSubPick weight : ',lorasKeySetTmp)
+                print('LoraChangeSubPick weight : ',k1,lorasKeySetTmp)
                 #lorasSetTmp=set() 
                 for k2 in lorasKeySetTmp:
                     v2=dic.get(k2)
                     loras=v2.get('loras')
                     lora=RandomWeight(loras) 
                     dicTmp[lora]=v2
-                    #lorasSetTmp.add(lora)
-                    #self.SetTive('Weight',v2)
 
                 #print('lorasListTmp : ',lorasSetTmp)
-                #self.lorasSet=self.lorasSet.union(lorasSetTmp)
             # ---------------------------------------------------------    
             #print('dicTmp : ',(dicTmp))       
 
@@ -528,6 +546,7 @@ class MyClass():
  
             # ---------------------------------------------------------
             
+            #print.Value('dicTmp : ',k1,dicTmp)
             print.Value('lorasSetTmp : ',k1,lorasSetTmp)
             self.lorasSet=self.lorasSet.union(lorasSetTmp)
 
@@ -1022,12 +1041,13 @@ class MyClass():
     def CheckpointPathCallback(self, event:FileSystemEvent):
         try:
             path=Path(event.src_path)
-            if event.event_type not in ['deleted','created']:
-                print.Value('safetensors',path.parts)
-                return
+            # if event.event_type not in ['deleted','created']:
+            #     if self.configYml.get('CallbackPrint',False):
+            #         print.Value('safetensors',path.parts)
+            #     return
             configPath=self.configYml.get('CheckpointPath')
-            print.Value('CheckpointPath configPath',configPath)
             if fnmatch.fnmatch(path,configPath+'/*.safetensors'):
+                print.Value('CheckpointPathCallback',event)
                 rel = path.relative_to(configPath)#('IL', '12341234.safetensors')
                 r0=rel.parts[0]
                 if r0 not in self.CheckpointTypes:
@@ -1050,12 +1070,18 @@ class MyClass():
     def LoraPathCallback(self, event:FileSystemEvent):
         try:
             path=Path(event.src_path)
-            if event.event_type not in ['deleted','created']:
-                #print.Value('safetensors',path.parts)
-                return
+            # if event.event_type not in ['deleted','created']:
+            #     if self.configYml.get('CallbackPrint',False):
+            #         print.Value('safetensors',path.parts)
+            #     return
             configPath=self.configYml.get('LoraPath')
-            print.Value('LoraPath configPath',configPath)
+            if fnmatch.fnmatch(path,configPath+'/*.ffs_db') or \
+               fnmatch.fnmatch(path,configPath+'/*.ffs_lock') or \
+               fnmatch.fnmatch(path,configPath+'/*.ffs_tmp'):
+                return            
+            #print.Value('LoraPathCallback',event)
             if fnmatch.fnmatch(path,configPath+'/*.safetensors'):
+                print.Value('LoraPathCallback',event)
                 rel = path.relative_to(configPath)
                 r0=rel.parts[0]
                 if r0 not in self.CheckpointTypes:
@@ -1088,8 +1114,8 @@ class MyClass():
     def CnfigCallback(self, event):
         try:
             path=Path(event.src_path)
-            print.Value('CnfigCallback',path)
             if path.as_posix()=='config.yml':
+                print.Value('CnfigCallback',path)
                 self.GetConfigYml()
         except:
              print.exception(show_locals=True) 
@@ -1110,6 +1136,8 @@ class MyClass():
             # -------------------------
             self.GetConfigYml()
             # -------------------------
+            self.Init()
+            # -------------------------
             # fileObserver=FileObserverHandler(
             #     [
             #         self.configYml.get('dataPath'),
@@ -1118,14 +1146,13 @@ class MyClass():
             #      ]
             #     , self.FileObserverCallback
             # )
+            # -------------------------
             fileObserver=FileObserver()
             fileObserver.symlink(self.configYml.get('dataPath'),FileHandler(self.DataPathCallback))
             fileObserver.symlink(self.configYml.get('CheckpointPath'),FileHandler(self.CheckpointPathCallback))
             fileObserver.symlink(self.configYml.get('LoraPath'),FileHandler(self.LoraPathCallback))
             fileObserver.symlink(".",FileHandler(self.CnfigCallback),False)
             fileObserver.start_watching()
-            # -------------------------
-            self.Init()
             # -------------------------
             self.loop=self.Loop()
             # # -------------------------

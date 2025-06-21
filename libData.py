@@ -46,6 +46,7 @@ WorkflowPrint: false # ComfyUI로 보낼기 직전 workflow_api 출력 여부
 shuffleWildcardPrint: false # shuffle Wildcard 전후 출력 여부
 setTivePrint: false # SetTive 처리 과정 출력 여부
 setWildcardPrint: false # 와일드 카드 관련 최종 처리 과정 출력 여부
+CallbackPrint: false # 실시간 파일 변경시 로그 출력
 # --- SetSetupWorkflowToWorkflowApi 설정 ---
 # workflow_api에 setupWorkflow.yml의 내용을 넣을때 제외할 노드
 excludeNode: 

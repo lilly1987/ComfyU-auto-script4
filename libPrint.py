@@ -17,17 +17,21 @@ import logging
 #import logging.handlers
 from rich.logging import RichHandler
 
-logging.basicConfig(
-    level=logging.NOTSET,
-    format="%(message)s",
-    datefmt="[%H:%M:%S]",
-    handlers=[RichHandler(rich_tracebacks=True)]
-)
+# logging.basicConfig(
+#     level=logging.NOTSET,
+#     #format="%(message)s",
+#     #datefmt="[%H:%M:%S]",
+#     #handlers=[RichHandler(rich_tracebacks=True)] # 콘솔 화면에 보여줌
+# )
 logger = logging.getLogger("rich")
+logger.setLevel(logging.NOTSET)
+
 
 os.makedirs('log', exist_ok=True)
+
 file_handler = logging.FileHandler(f'log/logger.{tm}.log', mode="a", encoding="utf-8")
-file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)-8s %(filename)s:%(funcName)s:%(lineno)4s %(message)s"
+file_handler.setFormatter(logging.Formatter(
+    "%(asctime)s %(levelname)-8s %(filename)s:%(funcName)s:%(lineno)4s %(message)s"
 ))
 logger.addHandler(file_handler)
 #-------------------------
