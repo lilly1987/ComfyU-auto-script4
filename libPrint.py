@@ -40,11 +40,16 @@ from rich.console import Console
 #-------------------------
 # 콘솔 화면용
 console_screen = Console(record=True)
+# console_screen.reset()
+console_screen.print("\033[0m")
 
 # 파일 기록용
 os.makedirs('log', exist_ok=True)
 console_log_file = open(f"log/console.{tm}.log", "a", encoding="utf-8")
 console_log = Console(record=True,file=console_log_file)
+# console_log.reset()
+console_log.print("\033[0m")
+
 atexit.register(console_log_file.close)  # 프로그램 종료 시 파일 자동 닫기
 
 #-------------------------

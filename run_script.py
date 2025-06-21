@@ -357,13 +357,15 @@ class MyClass():
         #print.Value(rpath)
         name=rpath.stem
         print.Value(path,rpath,name)
-        FileDics=Get(self.typeDics,CheckpointType,Dics,default={})
-        FileNames=Get(self.typeDics,CheckpointType,Names,default=[])
-        FileLists=Get(self.typeDics,CheckpointType,Lists,default=[])
+        FileDics:dict=Get(self.typeDics,CheckpointType,Dics,default={})
+        FileNames:list=Get(self.typeDics,CheckpointType,Names,default=[])
+        FileLists:list=Get(self.typeDics,CheckpointType,Lists,default=[])
         if event_type =='deleted' or event_type =='modified':
             FileDics.pop(name,None)
-            FileNames.pop(name,None)
-            FileLists.pop(rpath,None)
+            if name in FileNames:
+                FileNames.remove(name)
+            if rpath in FileNames:
+                FileLists.remove(rpath)
         if event_type =='created' or event_type =='modified':
             FileDics[name]=rpath
             FileNames.append(name)
