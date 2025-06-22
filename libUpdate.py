@@ -1,10 +1,11 @@
 import  collections
+from libPrint import *
 
 def update(d, u):
     #print(f"[{ccolor}]update d: [/{ccolor}]",d)
     #print(f"[{ccolor}]update u: [/{ccolor}]",u)
     if u is None:
-        print(f"[yellow]update u None[/yellow]")
+        #print.Warn(f"update u None")
         return d
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
@@ -31,7 +32,7 @@ def updaten(d, u):
     update 로직중 기존 사전에 있는 경우는 추가 안함. 즉 없는 경우에만 업뎃
     """
     if u is None:
-        print(f"[yellow]update u None[/yellow]")
+        #print.Warn(f"update u None")
         return d
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):

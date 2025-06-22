@@ -7,7 +7,7 @@ def GetFileDicList(path:str,dir="."):
     lists=[파일경로]
     names=[확장자제외 파일명]
     """
-    print.Value('GetFileDicList',path,dir)
+    #print.Value('GetFileDicList',path,dir)
     paths=GetFileListPath(path,dir)
     names=[i.stem for i in paths]
     lists=[str(i) for i in paths]

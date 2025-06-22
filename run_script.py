@@ -335,7 +335,7 @@ class MyClass():
                             'Char'
                             )
         CharFileNames=Get(self.typeDics,CheckpointType,'CharFileNames')
-        print.Value('CharFileNames',CheckpointType,CharFileNames[0:3])
+        #print.Value('CharFileNames',CheckpointType,CharFileNames[0:3])
         
     def GetSafetensorsEtc(self,CheckpointType):
         self.GetSafetensors(CheckpointType,
@@ -348,7 +348,7 @@ class MyClass():
                             )
         
         LoraFileNames=Get(self.typeDics,CheckpointType,'LoraFileNames')
-        print.Value('LoraFileNames',CheckpointType,LoraFileNames[0:3])
+        #print.Value('LoraFileNames',CheckpointType,LoraFileNames[0:3])
 
     def UpdateSafetensors(
             self,path:Path,CheckpointType:str,event_type:str,
@@ -414,8 +414,11 @@ class MyClass():
             safetensorsStart=self.configYml.get('safetensorsStart')
             if safetensorsStart:
                 safetensorsStart=Path(safetensorsStart)
+                ck=Get(self.typeDics,safetensorsStart.parts[0],'CheckpointFileDics',safetensorsStart.stem)
+                #print.Value('ck',ck)
                 if len(safetensorsStart.parts)==2 and \
-                    safetensorsStart.parts[0] in CheckpointTypes:
+                    safetensorsStart.parts[0] in CheckpointTypes and \
+                    ck:
 
                     print.Value('safetensorsStart',safetensorsStart.parts)
                     self.CheckpointType=safetensorsStart.parts[0]
@@ -503,14 +506,16 @@ class MyClass():
             self.CharPath=self.GetNow('CharFileDics',self.CharName)     
             print.Value('self.CharPath : ',self.CharPath)  
 
-    def LoraChangeSubPick(self):
+    def LoraChange(self):
         self.lorasSet=set() 
         WeightLora=self.GetNow('WeightLora')
-        # print('WeightLora : ',WeightLora)       
-        for k1,v1 in self.GetNow('WeightLora').items():
-            print.Value('LoraChangeSubPick : ',k1,len(v1))
+        # print('WeightLora : ',WeightLora)      
+        # WeightLora 그룹별 
+        self.tiveWeight={}
+        for k1,v1 in WeightLora.items():
+            print.Value('LoraChange : ',k1,len(v1))
             dic=v1.get('dic')
-            dicTmp={}
+            tiveWeightTmp={}
             lorasSetTmp=set() 
             # ---------------------------------------------------------
             per=v1.get('per',False)
@@ -531,7 +536,7 @@ class MyClass():
                     if per>random.random():
                         loras=v2.get('loras')
                         lora=RandomWeight(loras) 
-                        dicTmp[lora]=v2
+                        tiveWeightTmp[lora]=v2
                         #lorasSetTmp.add(lora)
                         #self.SetTive('Weight',v2)
                         perCnt+=1
@@ -543,13 +548,13 @@ class MyClass():
                 weightMax=v1.get('weightMax',0)
                 weightMax=RandomMinMax(weightMax) 
                 lorasKeySetTmp=set(RandomDicWeight(dic,'weight',weightMax))
-                print('LoraChangeSubPick weight : ',k1,lorasKeySetTmp)
+                print.Value('LoraChange weight : ',k1,lorasKeySetTmp)
                 #lorasSetTmp=set() 
                 for k2 in lorasKeySetTmp:
                     v2=dic.get(k2)
                     loras=v2.get('loras')
                     lora=RandomWeight(loras) 
-                    dicTmp[lora]=v2
+                    tiveWeightTmp[lora]=v2
 
                 #print('lorasListTmp : ',lorasSetTmp)
             # ---------------------------------------------------------    
@@ -559,16 +564,19 @@ class MyClass():
             if total:
                 totalMax=v1.get('totalMax',0)
                 totalMax=RandomMinMax(totalMax) 
-                l=RandomItemsCnt(dicTmp,totalMax)
+                l=RandomItemsCnt(tiveWeightTmp,totalMax)
                 #print('l : ',l)
                 lorasSetTmp.update(l)
             else:
-                l=list(dicTmp.keys())
+                l=list(tiveWeightTmp.keys())
                 #print('l : ',l)
                 lorasSetTmp.update(l)
 
             for k2 in lorasSetTmp:
-                self.SetTive('Weight',dicTmp[k2])
+                #print('dicTiveWeight[k2]',tiveWeightTmp[k2])
+                updatek(self.tiveWeight,tiveWeightTmp[k2],'positive')
+                updatek(self.tiveWeight,tiveWeightTmp[k2],'negative')
+                #self.SetTive('Weight',tiveWeightTmp[k2])
  
             # ---------------------------------------------------------
             
@@ -581,16 +589,16 @@ class MyClass():
             print.Config('self.negativeDics : ',self.negativeDics)
         print.Value('self.lorasSet : ', self.lorasSet)
 
-    def LoraChange(self):
-        ''' 
-        Lora 파일 목록
-        WeightLora.yml 가져오기
-        Lora 뽑음
-        '''
-        # ----------------------------
-        self.SetTive('Weight',{},True)
-        self.LoraChangeSubPick()
-        # ----------------------------
+    # def LoraChange(self):
+    #     ''' 
+    #     Lora 파일 목록
+    #     WeightLora.yml 가져오기
+    #     Lora 뽑음
+    #     '''
+    #     # ----------------------------
+        
+    #     self.LoraChangeSubPick()
+    #     # ----------------------------
     
     def GetWorkflow(self,node,key):
         """
@@ -682,8 +690,8 @@ class MyClass():
     def SetCheckpointLoaderSimple(self):
         #print(self.workflow_api)
         self.SetWorkflow('CheckpointLoaderSimple','ckpt_name',self.CheckpointPath)
-        tive=self.GetNow('dicCheckpointYml',self.CheckpointName)
-        self.SetTive('Checkpoint',tive,True)
+        self.tiveCheckpoint=self.GetNow('dicCheckpointYml',self.CheckpointName)
+        
 
     def SetFaceDetailer(self):
         '''
@@ -732,7 +740,7 @@ class MyClass():
         return self.GetNow('dicCheckpointYml',self.CheckpointName,node,k) 
 
     def SetDicCheckpointYmlToWorkflowApi(self):
-        dicCheckpointYml:dict=self.GetNow('dicCheckpointYml',self.CheckpointName)
+        dicCheckpointYml:dict=self.GetNow('dicCheckpointYml',self.CheckpointName,default={})
         #print.Value('dicCheckpointYml',dicCheckpointYml)
         #workflow_api=self.GetNow('workflow_api')
         for k,v in dicCheckpointYml.items():
@@ -762,14 +770,27 @@ class MyClass():
             )
 
     def SetWildcard(self):        
+        self.positiveDics={}
+        self.negativeDics={}
         
+        self.SetTive('setup',self.GetNow('setupWildcard'),True)
+        self.SetTive('Checkpoint',self.tiveCheckpoint,True)
+        self.SetTive('Char',self.tiveChar,True)
+        self.SetTive('Weight',self.tiveWeight,True)
+        self.SetTive('Lora',self.tiveLora,True)
+
+        # print.Config('self.positiveDics : ', self.positiveDics)
+        # print.Config('self.negativeDics : ', self.negativeDics)
+
         positive={}
         negative={}
         for k in self.configYml.get("SetWildcardSort",['setup','Checkpoint','Char','Weight','Lora']):
-            for d in self.positiveDics.get(k,[]):#list
-                update(positive,d)
-            for d in self.negativeDics.get(k,[]):#list
-                update(negative,d)
+            update(positive,self.positiveDics.get(k,{}))
+            update(positive,self.negativeDics.get(k,{}))
+            # for k,v in self.positiveDics.get(k,{}).items():#list
+            #     update(positive,v)
+            # for k,v in self.negativeDics.get(k,{}).items():#list
+            #     update(negative,v)
             # if k in self.positiveDics:
             #     self.WorkflowSet('positiveWildcard',k,self.positiveDics.get(k))
             # else:
@@ -778,8 +799,13 @@ class MyClass():
             #     self.WorkflowSet('negativeWildcard',k,self.negativeDics.get(k))
             # else:
             #     printWarn('SetWildcard no negative : ',k)
-        # print('positive : ',positive)
-        # print('negative : ',negative)
+        yaml_data = yaml.dump(positive, allow_unicode=True)
+        #print('positive : ',yaml_data)
+        self.SetWorkflow('PrimitiveStringMultilineP','value',yaml_data) 
+        yaml_data = yaml.dump(negative, allow_unicode=True)
+        #print('negative : ',yaml_data)
+        self.SetWorkflow('PrimitiveStringMultilineN','value',yaml_data) 
+
         lpositive=list(positive.values())
         lnegative=list(negative.values())
         if RandomWeight(self.configYml.get("shuffleWildcard",[False,True])):
@@ -807,6 +833,9 @@ class MyClass():
         self.SetWorkflow('positiveWildcard','seed',SeedInt()) 
         self.SetWorkflow('negativeWildcard','seed',SeedInt()) 
 
+    #def SetTiveAll(self):
+
+
     def SetTive(self,numName ,dic,reset=False):
         '''
         self.positiveDics
@@ -823,14 +852,16 @@ class MyClass():
         if dic:
 
             d=dic.get('positive')
-            s=self.positiveDics.setdefault( numName,[])
-            if d and d not in s:
-                s.append(d)
+            s=self.positiveDics.setdefault( numName,{})
+            update(s,d)
+            # if d and d not in s:
+            #     s.append(d)
 
             d=dic.get('negative')
-            s=self.negativeDics.setdefault( numName,[])
-            if d and d not in s:
-                s.append(d)
+            s=self.negativeDics.setdefault( numName,{})
+            update(s,d)
+            # if d and d not in s:
+            #     s.append(d)
 
             # self.positiveDics.setdefault( f'{numName}{s}',{key:dic.get('positive')}) 
             # self.negativeDics.setdefault( f'{numName}{s}',{key:dic.get('negative')}) 
@@ -850,7 +881,8 @@ class MyClass():
         LoraLoaderNextKey=LoraLoaderKey='LoraLoader'
         ModelSamplingDiscrete=self.GetWorkflow(LoraLoaderNextKey,'model')[0]
         CheckpointLoaderSimple=self.GetWorkflow(LoraLoaderNextKey,'clip')[0]
-        self.SetTive('Lora',{},True)
+        #self.SetTive('Lora',{},True)
+        self.tiveLora={}
 
         for self.loraTmp in self.lorasSet:
             if self.loraTmp not in self.GetNow('LoraFileNames'):
@@ -860,7 +892,8 @@ class MyClass():
             self.loraNum+=1
 
             dic=self.GetNow('dicLoraYml',self.loraTmp)
-            self.SetTive('Lora',dic)
+            #self.SetTive('Lora',dic)
+            update(self.tiveLora,dic)
 
             LoraLoaderTmpKey=f'LoraLoader-{self.loraTmp}'
             LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
@@ -910,7 +943,7 @@ class MyClass():
         if self.noChar:
             self.SetWorkflow('LoraLoader','strength_model',0.0)
             self.SetWorkflow('LoraLoader','strength_clip',0.0)
-            tive=self.configYml.get('noCharWildcard',{})
+            self.tiveChar=self.configYml.get('noCharWildcard',{})
         else:
             self.SetWorkflowFuncRandom('LoraLoader', 
                 ['strength_model','strength_clip','A','B'],
@@ -922,9 +955,8 @@ class MyClass():
                 self.SetCharSub,
                 RandomWeight
                 )
-            tive=self.GetNow('dicLoraYml',self.CharName)
+            self.tiveChar=self.GetNow('dicLoraYml',self.CharName)
         
-        self.SetTive('Char',tive,True)
     
     def SetLoopMax(self):
         '''
@@ -967,94 +999,6 @@ class MyClass():
         # -------------------------
         return False
 
-    def Loop(self):
-        #printBlue(' Loop start ')
-        
-        while True:
-            #printBlue(' Loop next ')
-
-            # -------------------------
-            # 변경 거의 없는 설정
-            self.configYml=ReadYml("config.yml") 
-
-            self.loraNum=0
-
-            if self.CheckpointLoopCnt==0:
-                self.CheckpointChange()
-                self.CheckpointLoopCnt+=1
-                self.CharLoopCnt=0
-
-            self.CopyWorkflowApi()
-
-            if self.CharLoopCnt==0:
-                self.CharChange()
-                self.CharLoopCnt+=1
-                self.QueueLoopCnt=0
-
-            if self.QueueLoopCnt==0:
-                self.LoraChange()
-                self.QueueLoopCnt+=1            
-
-            # -------------------------
-            #self.DicsChange()
-            #self.GetWorkflowApi()
-            #self.GetSetupWildcard()
-            self.SetTive('setup',self.GetNow('setupWildcard'),True)
-            #self.GetSetupWorkflow()
-            # -------------------------
-            self.SetSetupWorkflowToWorkflowApi()
-            self.SetCheckpointLoaderSimple()
-            self.SetSaveImage()
-            self.SetKSampler()
-            #self.SetEmptyLatentImage() # SetSetupWorkflowToWorkflowApi
-            #self.SetVAELoader() # SetSetupWorkflowToWorkflowApi
-            #self.SetFaceDetailer() # SetSetupWorkflowToWorkflowApi
-            self.SetDicCheckpointYmlToWorkflowApi()
-            self.SetChar()
-            self.SetLora()
-
-            # print('self.positive : ',self.positiveDics)
-            # print('self.negative : ',self.negativeDics)
-            self.SetWildcard()
-
-            # -------------------------
-            if self.configYml.get("WorkflowPrint",False):
-                print.Config('self.workflow_api : ',self.workflow_api)
-            # -------------------------
-            self.SetLoopMax()
-            # -------------------------
-            self.total+=1
-            print(f"{self.total}, \
-{self.CheckpointLoopCnt}/{self.CheckpointLoop}, \
-{self.CharLoopCnt}/{self.CharLoop}, \
-{self.QueueLoopCnt}/{self.QueueLoop}, \
-{str(datetime.timedelta(seconds=(time.time()-self.timeStart)))}, \
-{self.CheckpointName}, \
-{self.CharName}, \
-{self.CheckpointType}, \
-")
-            # -------------------------
-            if self.Queue():
-                return
-
-            time.sleep(RandomMinMax(self.configYml.get("sleep",1)))
-            # -------------------------
-            # -------------------------
-            #yield                             
-            # -------------------------
-            self.QueueLoopCnt+=1
-
-            if self.QueueLoopCnt > self.QueueLoop:
-                self.QueueLoopCnt=0
-                self.CharLoopCnt+=1
-
-            if self.CharLoopCnt > self.CharLoop:
-                self.CharLoopCnt=0
-                self.CheckpointLoopCnt+=1
-
-            if self.CheckpointLoopCnt > self.CheckpointLoop:
-                self.CheckpointLoopCnt=0
-      
     def DataPathCallback(self, event):
         try:
             path=Path(event.src_path)
@@ -1211,6 +1155,95 @@ class MyClass():
             exit(0)
         self.CheckpointTypes=self.configYml.get('CheckpointTypes').keys()
 
+    def Loop(self):
+        #printBlue(' Loop start ')
+        
+        while True:
+            #printBlue(' Loop next ')
+
+            # -------------------------
+            # 변경 거의 없는 설정
+            self.configYml=ReadYml("config.yml") 
+
+            self.loraNum=0
+
+            if self.CheckpointLoopCnt==0:
+                self.CheckpointChange()
+                self.CheckpointLoopCnt+=1
+                self.CharLoopCnt=0
+
+            self.CopyWorkflowApi()
+
+            if self.CharLoopCnt==0:
+                self.CharChange()
+                self.CharLoopCnt+=1
+                self.QueueLoopCnt=0
+
+            if self.QueueLoopCnt==0:
+                self.LoraChange()
+                self.QueueLoopCnt+=1            
+
+            # -------------------------
+
+            #self.DicsChange()
+            #self.GetWorkflowApi()
+            #self.GetSetupWildcard()
+            #self.GetSetupWorkflow()
+            # -------------------------
+            self.SetSetupWorkflowToWorkflowApi()
+            self.SetCheckpointLoaderSimple()
+            self.SetSaveImage()
+            self.SetKSampler()
+            #self.SetEmptyLatentImage() # SetSetupWorkflowToWorkflowApi
+            #self.SetVAELoader() # SetSetupWorkflowToWorkflowApi
+            #self.SetFaceDetailer() # SetSetupWorkflowToWorkflowApi
+            self.SetDicCheckpointYmlToWorkflowApi()
+            self.SetChar()
+            self.SetLora()
+
+            # self.SetTiveAll()
+            # print('self.positive : ',self.positiveDics)
+            # print('self.negative : ',self.negativeDics)
+            self.SetWildcard()
+
+            # -------------------------
+            if self.configYml.get("WorkflowPrint",False):
+                print.Config('self.workflow_api : ',self.workflow_api)
+            # -------------------------
+            self.SetLoopMax()
+            # -------------------------
+            self.total+=1
+            print(f"{self.total}, \
+{self.CheckpointLoopCnt}/{self.CheckpointLoop}, \
+{self.CharLoopCnt}/{self.CharLoop}, \
+{self.QueueLoopCnt}/{self.QueueLoop}, \
+{str(datetime.timedelta(seconds=(time.time()-self.timeStart)))}, \
+{self.CheckpointName}, \
+{self.CharName}, \
+{self.CheckpointType}, \
+")
+            # -------------------------
+            if self.Queue():
+                return
+
+            time.sleep(RandomMinMax(self.configYml.get("sleep",1)))
+            # -------------------------
+            # -------------------------
+            #yield                             
+            # -------------------------
+            self.QueueLoopCnt+=1
+
+            if self.QueueLoopCnt > self.QueueLoop:
+                self.QueueLoopCnt=0
+                self.CharLoopCnt+=1
+
+            if self.CharLoopCnt > self.CharLoop:
+                self.CharLoopCnt=0
+                self.CheckpointLoopCnt+=1
+
+            if self.CheckpointLoopCnt > self.CheckpointLoop:
+                self.CheckpointLoopCnt=0
+      
     def Run(self):
 
         try:
