@@ -786,7 +786,7 @@ class MyClass():
         negative={}
         for k in self.configYml.get("SetWildcardSort",['setup','Checkpoint','Char','Weight','Lora']):
             update(positive,self.positiveDics.get(k,{}))
-            update(positive,self.negativeDics.get(k,{}))
+            update(negative,self.negativeDics.get(k,{}))
             # for k,v in self.positiveDics.get(k,{}).items():#list
             #     update(positive,v)
             # for k,v in self.negativeDics.get(k,{}).items():#list
