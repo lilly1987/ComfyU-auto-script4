@@ -75,6 +75,7 @@ class PrintHelper:
         self.console_log.log(*args, **kwds)
 
     def exception(self,  *args, **kwds):
+        kwds.setdefault('show_locals', True)
         self.console_screen.print_exception(*args, **kwds)
         self.console_log.print_exception(*args, **kwds)
 

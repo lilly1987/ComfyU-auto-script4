@@ -43,7 +43,7 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
                 time.sleep(1)
         progress_run=None        
     except Exception as e:     
-        print.exception()
+        print.exception(show_locals=True)
         return True
     else:
         return False
@@ -56,23 +56,29 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
         data = json.dumps(p).encode('utf-8')        
 
         req =  request.Request(url, data=data)
-        while True:
-            try:
-                request.urlopen(req)
-            except HTTPError as e: 
-                print('Error code: ', e.code)
-                return True
-            except URLError as e:
-                print('Reason: ', e.reason)
-            else:
-                break                
-                        
-        print(f"send" )
-        
-    except Exception as e:     
-        print.exception()
-        return True
-    else:
+    except TypeError as e:     
+        print.exception(show_locals=True)
+        print.Err(p)
         return False
+        #return False
+    except Exception as e:     
+        print.exception(show_locals=True)
+        return False
+        #return True
+
+    while True:
+        try:
+            request.urlopen(req)
+        except HTTPError as e: 
+            print('Error code: ', e.code)
+            return False
+        except URLError as e:
+            print('Reason: ', e.reason)
+        else:
+            break                
+                    
+    print(f"send" )
+        
+    return False
         
     time.sleep(2)

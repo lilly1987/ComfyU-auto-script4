@@ -74,9 +74,6 @@ class MyClass():
             self.GetDicLoraYml(CheckpointType)
             self.GetWorkflowApi(CheckpointType)
 
-    # def CheckpointFileInit(self,CheckpointType):
-
-    
     def GetSetupWildcard(self,CheckpointType=None):
         '''
         setupWildcard.yml 가져오기
@@ -156,7 +153,6 @@ class MyClass():
         self.GetWeightLoraDel(CheckpointType)
         WeightLora=Get(self.typeDics,CheckpointType,'WeightLora')
         print.Value('WeightLora : ',CheckpointType,len(WeightLora)) 
-
 
     def GetWeightLoraDel(self,CheckpointType):
         '''
@@ -988,6 +984,7 @@ class MyClass():
         config = self.configYml
         if config.get("queue_prompt", True):
             if queue_prompt(self.workflow_api, url=config.get('url')):
+                pass
                 return True
         else:
             print.Green(" queue_prompt : ", config.get("queue_prompt", True))    
