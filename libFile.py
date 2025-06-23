@@ -1,5 +1,5 @@
 from pathlib import *
-from libPrint import *
+from libPrintLog import *
 
 def GetFileDicList(path:str,dir="."):
     """

@@ -1,6 +1,6 @@
 from libFile import *
 from libYml import *
-from libPrint import *
+from libPrintLog import *
 
 configYml="""
 # --- 경로 설정 ---

@@ -1,5 +1,5 @@
 import random
-from libPrint import *
+from libPrintLog import *
 from itertools import islice
 
 def RandomWeightCnt(d={},cnt=1,k=[]):

@@ -1,5 +1,5 @@
 import yaml
-from libPrint import *
+from libPrintLog import *
 from libUpdate import *
 from libFile import *
 import os
@@ -23,7 +23,8 @@ def ReadYml(n):
             film = yaml.load(f, Loader=yaml.FullLoader)
             #print(film)
             return film
-        except Exception:
+        except Exception:            
+            logger.exception()
             print.exception(show_locals=True) 
             raise
 

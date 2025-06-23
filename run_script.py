@@ -7,7 +7,7 @@ from libYml import *
 from libRandom import *
 from libFile import *
 from libComfy import *
-from libPrint import *
+from libPrintLog import *
 from libUpdate import *
 from libDic import *
 from libType import *
@@ -409,7 +409,7 @@ class MyClass():
             self.isFirst=False
             safetensorsStart=self.configYml.get('safetensorsStart')
             if safetensorsStart:
-                safetensorsStart=Path(safetensorsStart)
+                safetensorsStart:Path=Path(safetensorsStart)
                 ck=Get(self.typeDics,safetensorsStart.parts[0],'CheckpointFileDics',safetensorsStart.stem)
                 #print.Value('ck',ck)
                 if len(safetensorsStart.parts)==2 and \
@@ -609,6 +609,8 @@ class MyClass():
         """
         #self.workflow_api.get(k1).get("inputs")[k2]=v
         #return Set(self.workflow_api,value,node,"inputs",key)
+        if self.configYml.get('SetWorkflowPrint',False):
+            print.Config('SetWorkflow',node,key,value)
         return SetExists(self.workflow_api,value,node,"inputs",key)
 
     def SetWorkflowFuncRandom2(self,node, list,randonFunc=None,func=None ): 
@@ -998,7 +1000,7 @@ class MyClass():
 
     def DataPathCallback(self, event):
         try:
-            path=Path(event.src_path)
+            path:Path=Path(event.src_path)
             configPath=self.configYml.get('dataPath')
             if self.configYml.get('CallbackPrint',False):
                 print.Value('dataPath',configPath)
@@ -1063,7 +1065,7 @@ class MyClass():
         
     def CheckpointPathCallback(self, event:FileSystemEvent):
         try:
-            path=Path(event.src_path)
+            path:Path=Path(event.src_path)
             # if event.event_type not in ['deleted','created']:
             #     if self.configYml.get('CallbackPrint',False):
             #         print.Value('safetensors',path.parts)
@@ -1092,7 +1094,7 @@ class MyClass():
                         
     def LoraPathCallback(self, event:FileSystemEvent):
         try:
-            path=Path(event.src_path)
+            path:Path=Path(event.src_path)
             # if event.event_type not in ['deleted','created']:
             #     if self.configYml.get('CallbackPrint',False):
             #         print.Value('safetensors',path.parts)
@@ -1136,7 +1138,7 @@ class MyClass():
 
     def CnfigCallback(self, event):
         try:
-            path=Path(event.src_path)
+            path:Path=Path(event.src_path)
             if path.as_posix()=='config.yml':
                 print.Value('CnfigCallback',path)
                 self.GetConfigYml()
@@ -1272,19 +1274,21 @@ class MyClass():
 
             #     next(self.loop)
 
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             print.Warn('KeyboardInterrupt')
-            try:
-                sys.exit(130)
-            except SystemExit:
-                os._exit(130)
-        except Exception:
+            logger.exception('KeyboardInterrupt')
+            # try:
+            #     sys.exit(130)
+            # except SystemExit:
+            #     os._exit(130)
+        except Exception as e:
+            logger.exception('Exception')
             print.exception(show_locals=True) 
             # tm=time.strftime('%Y%m%d-%H%M%S')
             # os.makedirs('log', exist_ok=True)
-            # console.save_text(f'./log/console.{tm}.log')
 
         finally:
+            print.save_html()
             print.Info(' === finally === ')
             
 MyClass().Run()

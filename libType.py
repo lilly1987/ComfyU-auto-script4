@@ -1,4 +1,4 @@
-from libPrint import *
+from libPrintLog import *
 def GetTypeList(dic:dict, type:tuple,typeExclude:tuple=()):
     """
     dic에서 type에 해당하는 값의 키를 리스트로 반환

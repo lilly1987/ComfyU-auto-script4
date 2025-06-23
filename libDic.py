@@ -1,4 +1,7 @@
-from libPrint import *
+from libPrintLog import *
+import  collections
+from pathlib import Path
+
 
 def Get(d, *keys,default=None):
     """ 중첩 dict에서 keys가 존재할 경우에만 얻음. 없을경우 None 반환 """
@@ -87,3 +90,18 @@ def Set(dic, value, *deep):
 #d={}
 
 #Set(d, 20, "a", "b", "c")
+
+def convert_paths(obj):
+    if isinstance(obj, Path):
+        obj=str(obj)
+        print.Err((obj))       
+        logger.error((obj))
+        return (obj)
+    elif isinstance(obj, dict):
+        return {k: convert_paths(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_paths(elem) for elem in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_paths(elem) for elem in obj)
+    else:
+        return obj

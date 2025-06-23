@@ -1,5 +1,5 @@
 import  collections
-from libPrint import *
+from libPrintLog import *
 
 def update(d, u):
     #print(f"[{ccolor}]update d: [/{ccolor}]",d)

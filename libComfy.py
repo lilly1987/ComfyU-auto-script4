@@ -1,6 +1,7 @@
 import os, sys, glob, json, random, time, copy, string, re
 
-from libPrint import *
+from libDic import *
+from libPrintLog import *
 from rich.progress import Progress
 from urllib import request , error
 from urllib.error import URLError, HTTPError
@@ -53,12 +54,14 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
 def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
     try:
         p = {"prompt": prompt}
+        p = convert_paths(p)
         data = json.dumps(p).encode('utf-8')        
 
         req =  request.Request(url, data=data)
     except TypeError as e:     
         print.exception(show_locals=True)
-        print.Err(p)
+        print.Err(prompt)        
+        #logger.exception("TypeError 발생: %s", p)
         return False
         #return False
     except Exception as e:     
@@ -70,7 +73,8 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
         try:
             request.urlopen(req)
         except HTTPError as e: 
-            print('Error code: ', e.code)
+            print.Err('Error code: ', e.code)
+            logger.exception("HTTPError 발생: %s", e)
             return False
         except URLError as e:
             print('Reason: ', e.reason)
