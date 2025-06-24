@@ -24,7 +24,7 @@ def ReadYml(n):
             #print(film)
             return film
         except Exception:            
-            logger.exception()
+            logger.exception('ReadYml',n)
             print.exception(show_locals=True) 
             raise
 

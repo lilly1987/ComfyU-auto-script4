@@ -357,16 +357,17 @@ class MyClass():
         FileDics:dict=Get(self.typeDics,CheckpointType,Dics,default={})
         FileNames:list=Get(self.typeDics,CheckpointType,Names,default=[])
         FileLists:list=Get(self.typeDics,CheckpointType,Lists,default=[])
+        spath=str(rpath)
         if event_type =='deleted' or event_type =='modified':
             FileDics.pop(name,None)
             if name in FileNames:
                 FileNames.remove(name)
-            if rpath in FileNames:
-                FileLists.remove(rpath)
+            if spath in FileNames:
+                FileLists.remove(spath)
         if event_type =='created' or event_type =='modified':
             FileDics[name]=rpath
             FileNames.append(name)
-            FileLists.append(rpath)
+            FileLists.append(spath)
 
     def UpdateSafetensorsChar(self,path:Path,CheckpointType:str,event_type:str):
         self.UpdateSafetensors(path,CheckpointType,event_type, 
@@ -477,6 +478,7 @@ class MyClass():
             self.CharPath=self.GetNow('CharFileLists')[0]
             print.Value('self.CharPath : ',self.CharPath)  
         else:
+            self.noChar=False
             self.CharWeightPer=self.configYml.get('CharWeightPer',0.5)            
             self.CharWeightPerResult=self.CharWeightPer>random.random()
             print.Value('self.CharWeightPer : ',self.CharWeightPer,self.CharWeightPerResult)
@@ -494,6 +496,7 @@ class MyClass():
 
                 if len(self.SubChar)>0:
                     self.CharName=random.choice(self.SubChar)
+                    logger.warning(f'no in WeightChar : {self.CharName}')
                 else:
                     print.Warn('no SubChar')       
                     self.CharName=random.choice(CharFileNames)
@@ -818,14 +821,14 @@ class MyClass():
         positiveWildcard=",".join(lpositive)
         negativeWildcard=",".join(lnegative)
         if self.configYml.get("setWildcardDicPrint",False):
-            print.Config('self.positiveDics : ', self.positiveDics)
             print.Config('self.negativeDics : ', self.negativeDics)
+            print.Config('self.positiveDics : ', self.positiveDics)
         if self.configYml.get("setWildcardTivePrint",False):
-            print.Config('positive : ', positive)
             print.Config('negative : ', negative)
+            print.Config('positive : ', positive)
         if self.configYml.get("setWildcardPrint",False):
-            print.Config('positiveWildcard : ', positiveWildcard)
             print.Config('negativeWildcard : ', negativeWildcard)
+            print.Config('positiveWildcard : ', positiveWildcard)
         self.SetWorkflow('positiveWildcard','wildcard_text',positiveWildcard) 
         self.SetWorkflow('negativeWildcard','wildcard_text',negativeWildcard) 
         self.SetWorkflow('positiveWildcard','seed',SeedInt()) 
