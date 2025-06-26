@@ -358,33 +358,33 @@ class MyClass():
 
     def UpdateSafetensors(
             self,path:Path,CheckpointType:str,event_type:str,
-            config:str,Dics:str,Names:str,Lists:str):
+            config:str,Dics:str,Lists:str,Names:str):
         #print.Value(path)
         rpath=path.relative_to(self.configYml.get(config) )
         #print.Value(rpath)
         name=rpath.stem
         print.Value(path,rpath,name)
         FileDics:dict=Get(self.typeDics,CheckpointType,Dics,default={})
-        FileNames:list=Get(self.typeDics,CheckpointType,Names,default=[])
         FileLists:list=Get(self.typeDics,CheckpointType,Lists,default=[])
+        FileNames:list=Get(self.typeDics,CheckpointType,Names,default=[])
         spath=str(rpath)
         if event_type =='deleted' or event_type =='modified':
             FileDics.pop(name,None)
+            if spath in FileLists:
+                FileLists.remove(spath)
             if name in FileNames:
                 FileNames.remove(name)
-            if spath in FileNames:
-                FileLists.remove(spath)
         if event_type =='created' or event_type =='modified':
             FileDics[name]=rpath
-            FileNames.append(name)
             FileLists.append(spath)
+            FileNames.append(name)
 
     def UpdateSafetensorsChar(self,path:Path,CheckpointType:str,event_type:str):
         self.UpdateSafetensors(path,CheckpointType,event_type, 
                                'LoraPath',
                                'CharFileDics',
-                               'CharFileNames',
-                               'CharFileLists'
+                               'CharFileLists',
+                               'CharFileNames'
                                 )
         
     def UpdateSafetensorsEct(self,path:Path,CheckpointType:str,event_type:str):
