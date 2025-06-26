@@ -13,7 +13,7 @@ CheckpointTypes: # Checkpoint 및 Lora 종류. 뒤의 숫자는 사용할 가중
   IL: 2
   Pony: 1
 safetensorsFile: '*.safetensors' # Checkpoint 및 Lora 파일 확장자.
-workflow_api: workflow_api.yml # ComfyUI 로 보낼 workflow api 파일. dataPath+CheckpointTypes에 넣음
+workflow_api: workflow_api.json # ComfyUI 로 보낼 workflow api 파일. dataPath+CheckpointTypes에 넣음
 url: http://127.0.0.1:8188/prompt # ComfyUI 로 보낼 url. ComfyUI가 실행중이어야 함
 # --- 반복 설정 ---
 # CheckpointLoop * CharLoop * QueueLoop 횟수만큼 무한 반복
