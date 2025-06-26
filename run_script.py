@@ -13,6 +13,16 @@ from libDic import *
 from libType import *
 from itertools import islice
 import fnmatch
+import sys,subprocess, pkg_resources
+
+required  = {'watchdog'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing   = required - installed
+
+if missing:
+    python = sys.executable
+    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+
 from watchdog.events import *
 
 if not os.path.exists('config.yml'):

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FreeFileSync XmlType="GUI" XmlFormat="23">
+    <Notes/>
+    <Compare>
+        <Variant>TimeAndSize</Variant>
+        <Symlinks>Exclude</Symlinks>
+        <IgnoreTimeShift/>
+    </Compare>
+    <Synchronize>
+        <Changes>
+            <Left Create="right" Update="right" Delete="right"/>
+            <Right Create="left" Update="left" Delete="left"/>
+        </Changes>
+        <DeletionPolicy>RecycleBin</DeletionPolicy>
+        <VersioningFolder Style="Replace"/>
+    </Synchronize>
+    <Filter>
+        <Include>
+            <Item>*</Item>
+        </Include>
+        <Exclude>
+            <Item>\System Volume Information\</Item>
+            <Item>\$Recycle.Bin\</Item>
+            <Item>\RECYCLE?\</Item>
+            <Item>\Recovery\</Item>
+            <Item>*\thumbs.db</Item>
+        </Exclude>
+        <SizeMin Unit="None">0</SizeMin>
+        <SizeMax Unit="None">0</SizeMax>
+        <TimeSpan Type="None">0</TimeSpan>
+    </Filter>
+    <FolderPairs>
+        <Pair>
+            <Left>D:\models\clip\now</Left>
+            <Right>D:\models\clip\bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\embeddings\now</Left>
+            <Right>D:\models\embeddings\bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\loras\IL\etc</Left>
+            <Right>D:\models\loras\IL\etc bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\loras\Pony\etc</Left>
+            <Right>D:\models\loras\Pony\etc bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\ultralytics\bbox\now</Left>
+            <Right>D:\models\ultralytics\bbox\bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\ultralytics\segm\now</Left>
+            <Right>D:\models\ultralytics\segm\bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\unet\now</Left>
+            <Right>D:\models\unet\bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\vae\now</Left>
+            <Right>D:\models\vae\now bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\loras\Pony\char</Left>
+            <Right>D:\models\loras\Pony\char bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\loras\IL\char</Left>
+            <Right>D:\models\loras\IL\char bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\checkpoints\Pony</Left>
+            <Right>D:\models\checkpoints\Pony bak</Right>
+        </Pair>
+        <Pair>
+            <Left>D:\models\checkpoints\IL</Left>
+            <Right>D:\models\checkpoints\IL bak</Right>
+        </Pair>
+    </FolderPairs>
+    <Errors Ignore="false" Retry="0" Delay="5"/>
+    <PostSyncCommand Condition="Completion"/>
+    <LogFolder/>
+    <EmailNotification Condition="Always"/>
+    <GridViewType>Action</GridViewType>
+</FreeFileSync>

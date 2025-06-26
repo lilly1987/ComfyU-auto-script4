@@ -1,6 +1,16 @@
+git clone https://github.com/ltdrdata/ComfyUI-Manager ..\ComfyUI\custom_nodes\ComfyUI-Manager
+git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack ..\ComfyUI\custom_nodes\ComfyUI-Impact-Pack
+git clone https://github.com/ltdrdata/ComfyUI-Impact-Subpack ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack
+git clone https://github.com/ltdrdata/ComfyUI-Inspire-Pack ..\ComfyUI\custom_nodes\ComfyUI-Inspire-Pack
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts
 ..\python_embeded\python.exe -s -m pip install watchdog
-rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r C:\ComfyUI_windows_portable\ComfyUI\requirements.txt
-rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\comfyui_controlnet_aux\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Manager\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts\requirements.txt
+echo ComfyUI\custom_nodes\ComfyUI-Impact-Pack\impact-pack.ini
+
+rem ..\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\comfyui_controlnet_aux\requirements.txt
 rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack\requirements.txt
 rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r C:\ComfyUI_windows_portable\ComfyUI\custom_nodes\ComfyUI-Impact-Pack\requirements.txt
 rem C:\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install opencv-python
