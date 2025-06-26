@@ -1,18 +1,10 @@
-import yaml
 from libPrintLog import *
 from libUpdate import *
 from libFile import *
+
+import yaml
 import os
-import sys,subprocess, pkg_resources
 
-required  = {'ruamel.yaml'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing   = required - installed
-
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-    
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 

@@ -3,6 +3,9 @@ import os, sys, glob, random, time, copy, string, yaml, logging, datetime
 sys.path.append(os.getcwd())
 #from libTest import *
 from pathlib import *
+
+from libModule import *
+
 from libYml import *
 from libRandom import *
 from libFile import *
@@ -11,17 +14,10 @@ from libPrintLog import *
 from libUpdate import *
 from libDic import *
 from libType import *
+
 from itertools import islice
 import fnmatch
-import sys,subprocess, pkg_resources
-
-required  = {'watchdog'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing   = required - installed
-
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+import sys
 
 from watchdog.events import *
 
@@ -769,7 +765,7 @@ class MyClass():
 {self.CheckpointType}/\
 {self.CheckpointName}/\
 {self.CharName}/\
-{self.CheckpointName}-{self.CharName}-{tm}-1"
+{self.CheckpointName}-{self.CharName}-{tm}-{self.total}-1"
             )
         
         self.SetWorkflow('SaveImage2','filename_prefix',
@@ -777,7 +773,7 @@ class MyClass():
 {self.CheckpointType}/\
 {self.CheckpointName}/\
 {self.CharName}/\
-{self.CheckpointName}-{self.CharName}-{tm}-1"
+{self.CheckpointName}-{self.CharName}-{tm}-{self.total}-2"
             )
 
     def SetWildcard(self):        

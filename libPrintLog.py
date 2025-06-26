@@ -1,14 +1,5 @@
 import os
-import sys,subprocess, pkg_resources
 
-required  = {'rich'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing   = required - installed
-
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-    
 #-------------------------
 import time
 tm=time.strftime('%Y%m%d-%H%M%S')
