@@ -18,13 +18,19 @@ os.makedirs('log', exist_ok=True)
 #     #handlers=[RichHandler(rich_tracebacks=True)] # 콘솔 화면에 보여줌
 # )
 logger = logging.getLogger("rich")
-logger.setLevel(logging.NOTSET)
+logger.setLevel(logging.DEBUG)
 
 file_handler = logging.FileHandler(f'log/{tm}.logger.log', mode="a", encoding="utf-8")
 file_handler.setFormatter(logging.Formatter(
     "%(asctime)s %(levelname)-8s %(filename)s:%(funcName)s:%(lineno)4s %(message)s"
 ))
+file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
+logger.debug('test')
+logger.info('test')
+logger.warning('test')
+logger.error('test')
+logger.critical('test')
 #-------------------------
 from rich.theme import Theme
 from rich.terminal_theme import TerminalTheme

@@ -3,4 +3,3 @@ sys.path.append(os.getcwd())
 from libMain import *
 
 MyClass().Check()
-MyClass().Run()
