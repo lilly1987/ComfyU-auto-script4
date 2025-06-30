@@ -99,7 +99,7 @@
   },
   "SaveImage1": {
     "inputs": {
-      "filename_prefix": "%date:yyyyMMdd-hhmmss%-1",
+      "filename_prefix": "%CheckpointLoaderSimple.ckpt_name%-%date:yyyyMMdd-hhmmss%-1",
       "images": [
         "VAEDecode",
         0
@@ -200,7 +200,7 @@
   },
   "SaveImage2": {
     "inputs": {
-      "filename_prefix": "%date:yyyyMMdd-hhmmss%-2",
+      "filename_prefix": "%CheckpointLoaderSimple.ckpt_name%-%date:yyyyMMdd-hhmmss%-2",
       "images": [
         "FaceDetailer",
         0

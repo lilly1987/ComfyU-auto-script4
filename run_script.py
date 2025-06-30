@@ -474,8 +474,9 @@ class MyClass():
         '''
         self.noCharPer=self.configYml.get('noCharPer',0.5)
         #print.Value('self.noCharPer : ',self.noCharPer)
-        self.noCharPerResult=self.noCharPer>random.random()
-        print.Value('self.noCharPer : ',self.noCharPer,self.noCharPerResult)
+        r=random.random()
+        self.noCharPerResult=self.noCharPer>r
+        print.Value('self.noCharPer : ',self.noCharPer,r,self.noCharPerResult)
         CharFileNames=self.GetNow('CharFileNames')
         WeightChar=self.GetNow('WeightChar')
         if self.noCharPerResult:
@@ -485,9 +486,10 @@ class MyClass():
             print.Value('self.CharPath : ',self.CharPath)  
         else:
             self.noChar=False
-            self.CharWeightPer=self.configYml.get('CharWeightPer',0.5)            
-            self.CharWeightPerResult=self.CharWeightPer>random.random()
-            print.Value('self.CharWeightPer : ',self.CharWeightPer,self.CharWeightPerResult)
+            self.CharWeightPer=self.configYml.get('CharWeightPer',0.5)        
+            r=random.random()    
+            self.CharWeightPerResult=self.CharWeightPer>r
+            print.Value('self.CharWeightPer : ',self.CharWeightPer,r,self.CharWeightPerResult)
             if self.CharWeightPerResult:
                 if len(WeightChar)>0:
                     self.CharName=RandomWeightCnt(WeightChar)[0]
@@ -538,7 +540,8 @@ class MyClass():
                         break
 
                     per=v2.get('per',0)
-                    if per>random.random():
+                    r=random.random()
+                    if per>r:
                         loras=v2.get('loras')
                         lora=RandomWeight(loras) 
                         tiveWeightTmp[lora]=v2
@@ -650,6 +653,12 @@ class MyClass():
                 m=RandomMinMax(m)
                 #print('SetSetupWorkflow3',node,k,v,m)    
                 v=max(v,m)
+                #print('SetSetupWorkflow3',node,k,v,m)
+            m=Get(setupWorkflow,'workflow_max',node,k) 
+            if m:
+                m=RandomMinMax(m)
+                #print('SetSetupWorkflow3',node,k,v,m)    
+                v=min(v,m)
                 #print('SetSetupWorkflow3',node,k,v,m)
             #print(c,k,v)           
             self.SetWorkflow(node,k,v)
