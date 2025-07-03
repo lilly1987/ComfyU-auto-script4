@@ -27,6 +27,13 @@ noCharWildcard: # Char 파일을 안쓸 경우 Wildcard 설정
     태그: 와일드카드 또는 키워드
   negative:
     태그: 와일드카드 또는 키워드
+# --- Lora 적용 설정 ---
+noLoraPer: 0.125 # Lora 파일을 안쓸 확률. 안쓸경우 LoraWeightPer 무시됨
+noLoraWildcard: # Lora 파일을 안쓸 경우 Wildcard 설정
+  positive:
+    noLora: '/**/__action__,/**/'
+  negative:
+    noLora: ''
 # --- Weight 설정 ---
 CheckpointWeightPer: 0.5 # WeightCheckpoint.yml 파일을 쓸 확률
 CharWeightPer: 0.5 # WeightChar.yml 파일을 쓸 확률. 

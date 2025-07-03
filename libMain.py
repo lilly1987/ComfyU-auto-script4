@@ -46,8 +46,10 @@ class MyClass():
         self.CharPath=None        
         self.loraTmp=None
         self.noChar=False
+        self.noLora=False
         # ---------------------
         self.lorasSet=set()        
+        self.tiveWeight={}
         self.positiveDics={}
         self.negativeDics={}
         # ---------------------        
@@ -516,88 +518,97 @@ class MyClass():
             print.Value('self.CharPath : ',self.CharPath)  
 
     def LoraChange(self):
-        self.lorasSet=set() 
-        WeightLora=self.GetNow('WeightLora')
-        # print('WeightLora : ',WeightLora)      
-        # WeightLora 그룹별 
         self.tiveWeight={}
-        for k1,v1 in WeightLora.items():
-            print.Value('LoraChange : ',k1,len(v1))
-            dic=v1.get('dic')
-            tiveWeightTmp={}
-            lorasSetTmp=set() 
-            # ---------------------------------------------------------
-            per=v1.get('per',False)
-            if per:                
-                perMax=v1.get('perMax',0)
-                perMax=RandomMinMax(perMax)
-                perCnt=0
-                perFirsts=v1.get('perFirsts',False)
-                #lorasSetTmp=set() 
+        self.lorasSet=set() 
 
-                for k2,v2 in dic.items():
-                    
-                    if perFirsts and perCnt>=perMax:
-                        print('perCnt, perMax : ',perCnt,perMax)
-                        break
+        self.noLoraPer=self.configYml.get('noLoraPer',0.5)
+        r=random.random()
+        self.noLoraPerResult=self.noLoraPer>r
+        print.Value('self.noLoraPer : ',self.noLoraPer,r,self.noLoraPerResult)
+        if self.noLoraPerResult:
+            self.noLora=True
+        else:
+            self.noLora=False
+            WeightLora=self.GetNow('WeightLora')
+            # print('WeightLora : ',WeightLora)      
+            # WeightLora 그룹별 
+            for k1,v1 in WeightLora.items():
+                print.Value('LoraChange : ',k1,len(v1))
+                dic=v1.get('dic')
+                tiveWeightTmp={}
+                lorasSetTmp=set() 
+                # ---------------------------------------------------------
+                per=v1.get('per',False)
+                if per:                
+                    perMax=v1.get('perMax',0)
+                    perMax=RandomMinMax(perMax)
+                    perCnt=0
+                    perFirsts=v1.get('perFirsts',False)
+                    #lorasSetTmp=set() 
 
-                    per=v2.get('per',0)
-                    r=random.random()
-                    if per>r:
+                    for k2,v2 in dic.items():
+                        
+                        if perFirsts and perCnt>=perMax:
+                            print('perCnt, perMax : ',perCnt,perMax)
+                            break
+
+                        per=v2.get('per',0)
+                        r=random.random()
+                        if per>r:
+                            loras=v2.get('loras')
+                            lora=RandomWeight(loras) 
+                            tiveWeightTmp[lora]=v2
+                            #lorasSetTmp.add(lora)
+                            #self.SetTive('Weight',v2)
+                            perCnt+=1
+    
+                    #self.lorasSet=self.lorasSet.union(lorasSetTmp)
+                # ---------------------------------------------------------
+                weight=v1.get('weight',False)            
+                if weight:
+                    weightMax=v1.get('weightMax',0)
+                    weightMax=RandomMinMax(weightMax) 
+                    lorasKeySetTmp=set(RandomDicWeight(dic,'weight',weightMax))
+                    print.Value('LoraChange weight : ',k1,lorasKeySetTmp)
+                    #lorasSetTmp=set() 
+                    for k2 in lorasKeySetTmp:
+                        v2=dic.get(k2)
                         loras=v2.get('loras')
                         lora=RandomWeight(loras) 
                         tiveWeightTmp[lora]=v2
-                        #lorasSetTmp.add(lora)
-                        #self.SetTive('Weight',v2)
-                        perCnt+=1
- 
-                #self.lorasSet=self.lorasSet.union(lorasSetTmp)
-            # ---------------------------------------------------------
-            weight=v1.get('weight',False)            
-            if weight:
-                weightMax=v1.get('weightMax',0)
-                weightMax=RandomMinMax(weightMax) 
-                lorasKeySetTmp=set(RandomDicWeight(dic,'weight',weightMax))
-                print.Value('LoraChange weight : ',k1,lorasKeySetTmp)
-                #lorasSetTmp=set() 
-                for k2 in lorasKeySetTmp:
-                    v2=dic.get(k2)
-                    loras=v2.get('loras')
-                    lora=RandomWeight(loras) 
-                    tiveWeightTmp[lora]=v2
 
-                #print('lorasListTmp : ',lorasSetTmp)
-            # ---------------------------------------------------------    
-            #print('dicTmp : ',(dicTmp))       
+                    #print('lorasListTmp : ',lorasSetTmp)
+                # ---------------------------------------------------------    
+                #print('dicTmp : ',(dicTmp))       
 
-            total=v1.get('total',False)
-            if total:
-                totalMax=v1.get('totalMax',0)
-                totalMax=RandomMinMax(totalMax) 
-                l=RandomItemsCnt(tiveWeightTmp,totalMax)
-                #print('l : ',l)
-                lorasSetTmp.update(l)
-            else:
-                l=list(tiveWeightTmp.keys())
-                #print('l : ',l)
-                lorasSetTmp.update(l)
+                total=v1.get('total',False)
+                if total:
+                    totalMax=v1.get('totalMax',0)
+                    totalMax=RandomMinMax(totalMax) 
+                    l=RandomItemsCnt(tiveWeightTmp,totalMax)
+                    #print('l : ',l)
+                    lorasSetTmp.update(l)
+                else:
+                    l=list(tiveWeightTmp.keys())
+                    #print('l : ',l)
+                    lorasSetTmp.update(l)
 
-            for k2 in lorasSetTmp:
-                #print('dicTiveWeight[k2]',tiveWeightTmp[k2])
-                updatek(self.tiveWeight,tiveWeightTmp[k2],'positive')
-                updatek(self.tiveWeight,tiveWeightTmp[k2],'negative')
-                #self.SetTive('Weight',tiveWeightTmp[k2])
- 
-            # ---------------------------------------------------------
-            
-            #print.Value('dicTmp : ',k1,dicTmp)
-            print.Value('lorasSetTmp : ',k1,lorasSetTmp)
-            self.lorasSet=self.lorasSet.union(lorasSetTmp)
+                for k2 in lorasSetTmp:
+                    #print('dicTiveWeight[k2]',tiveWeightTmp[k2])
+                    updatek(self.tiveWeight,tiveWeightTmp[k2],'positive')
+                    updatek(self.tiveWeight,tiveWeightTmp[k2],'negative')
+                    #self.SetTive('Weight',tiveWeightTmp[k2])
+    
+                # ---------------------------------------------------------
+                
+                #print.Value('dicTmp : ',k1,dicTmp)
+                print.Value('lorasSetTmp : ',k1,lorasSetTmp)
+                self.lorasSet=self.lorasSet.union(lorasSetTmp)
 
-        if self.configYml.get("LoraChangePrint",False):
-            print.Config('self.positiveDics : ',self.positiveDics)
-            print.Config('self.negativeDics : ',self.negativeDics)
-        print.Value('self.lorasSet : ', self.lorasSet)
+            if self.configYml.get("LoraChangePrint",False):
+                print.Config('self.positiveDics : ',self.positiveDics)
+                print.Config('self.negativeDics : ',self.negativeDics)
+            print.Value('self.lorasSet : ', self.lorasSet)
 
     # def LoraChange(self):
     #     ''' 
@@ -900,48 +911,50 @@ class MyClass():
         ModelSamplingDiscrete=self.GetWorkflow(LoraLoaderNextKey,'model')[0]
         CheckpointLoaderSimple=self.GetWorkflow(LoraLoaderNextKey,'clip')[0]
         #self.SetTive('Lora',{},True)
-        self.tiveLora={}
+        if self.noLora:
+            self.tiveLora=self.configYml.get('noLoraWildcard',{})
+        else:
+            self.tiveLora={}
+            for self.loraTmp in self.lorasSet:
+                if self.loraTmp not in self.GetNow('LoraFileNames'):
+                    print.Warn('SetLora no : ',self.loraTmp)
+                    continue
+                #print('SetLora : ',lora)
+                self.loraNum+=1
 
-        for self.loraTmp in self.lorasSet:
-            if self.loraTmp not in self.GetNow('LoraFileNames'):
-                print.Warn('SetLora no : ',self.loraTmp)
-                continue
-            #print('SetLora : ',lora)
-            self.loraNum+=1
+                dic=self.GetNow('dicLoraYml',self.loraTmp)
+                #self.SetTive('Lora',dic)
+                update(self.tiveLora,dic)
 
-            dic=self.GetNow('dicLoraYml',self.loraTmp)
-            #self.SetTive('Lora',dic)
-            update(self.tiveLora,dic)
+                LoraLoaderTmpKey=f'LoraLoader-{self.loraTmp}'
+                LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
+                #self.SetNow(LoraLoaderTmp,'workflow_api',LoraLoaderTmpKey)
+                Set(self.workflow_api,LoraLoaderTmp,LoraLoaderTmpKey)
 
-            LoraLoaderTmpKey=f'LoraLoader-{self.loraTmp}'
-            LoraLoaderTmp=copy.deepcopy(LoraLoader) # 딥카피로 변경
-            #self.SetNow(LoraLoaderTmp,'workflow_api',LoraLoaderTmpKey)
-            Set(self.workflow_api,LoraLoaderTmp,LoraLoaderTmpKey)
+                self.GetWorkflow(LoraLoaderTmpKey,'model')[0]=ModelSamplingDiscrete
+                self.GetWorkflow(LoraLoaderTmpKey,'clip')[0]=CheckpointLoaderSimple
+                # LoraLoaderTmp['inputs']['model'][0]="CheckpointLoaderSimple"
+                # LoraLoaderTmp['inputs']['clip'][0]="CheckpointLoaderSimple"
+                self.SetWorkflow(LoraLoaderTmpKey,'seed',SeedInt()) 
+                self.SetWorkflow(LoraLoaderTmpKey,'lora_name',self.GetNow('LoraFileDics',self.loraTmp)) 
 
-            self.GetWorkflow(LoraLoaderTmpKey,'model')[0]=ModelSamplingDiscrete
-            self.GetWorkflow(LoraLoaderTmpKey,'clip')[0]=CheckpointLoaderSimple
-            # LoraLoaderTmp['inputs']['model'][0]="CheckpointLoaderSimple"
-            # LoraLoaderTmp['inputs']['clip'][0]="CheckpointLoaderSimple"
-            self.SetWorkflow(LoraLoaderTmpKey,'seed',SeedInt()) 
-            self.SetWorkflow(LoraLoaderTmpKey,'lora_name',self.GetNow('LoraFileDics',self.loraTmp)) 
-
-            self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
-                ['strength_model','strength_clip','A','B'],
-                self.SetLoraSub,
-                RandomMinMax
-                )
-            self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
-                ['preset','block_vector'],
-                self.SetLoraSub,
-                RandomWeight
-                )
-            
-            self.GetWorkflow(LoraLoaderNextKey,'model')[0]=LoraLoaderTmpKey
-            self.GetWorkflow(LoraLoaderNextKey,'clip')[0]=LoraLoaderTmpKey
-            # LoraLoaderNext['inputs']['model'][0]=LoraLoaderTmpKey
-            # LoraLoaderNext['inputs']['clip'][0]=LoraLoaderTmpKey
-            LoraLoaderNext= LoraLoaderTmp
-            LoraLoaderNextKey= LoraLoaderTmpKey
+                self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
+                    ['strength_model','strength_clip','A','B'],
+                    self.SetLoraSub,
+                    RandomMinMax
+                    )
+                self.SetWorkflowFuncRandom(LoraLoaderTmpKey, 
+                    ['preset','block_vector'],
+                    self.SetLoraSub,
+                    RandomWeight
+                    )
+                
+                self.GetWorkflow(LoraLoaderNextKey,'model')[0]=LoraLoaderTmpKey
+                self.GetWorkflow(LoraLoaderNextKey,'clip')[0]=LoraLoaderTmpKey
+                # LoraLoaderNext['inputs']['model'][0]=LoraLoaderTmpKey
+                # LoraLoaderNext['inputs']['clip'][0]=LoraLoaderTmpKey
+                LoraLoaderNext= LoraLoaderTmp
+                LoraLoaderNextKey= LoraLoaderTmpKey
 
 
         #print(self.workflow_api)
