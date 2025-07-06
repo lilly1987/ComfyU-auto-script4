@@ -780,22 +780,25 @@ class MyClass():
                 self.SetWorkflowFuncRandom3(k,l,self.SetDicCheckpointYmlToWorkflowApiSub,RandomWeight)
 
     def SetSaveImage(self): 
-        tm=time.strftime('%Y%m%d-%H%M%S')
+        
+        if self.tiveChar:
+            st='+'
+        else:
+            st=''
 
-        self.SetWorkflow('SaveImage1','filename_prefix',
-            f"\
+        st=f"\
 {self.CheckpointType}/\
 {self.CheckpointName}/\
-{self.CharName}/\
-{self.CheckpointName}-{self.CharName}-{tm}-{self.total}-1"
+{st}{self.CharName}/\
+{self.CheckpointName}-{self.CharName}-\
+{time.strftime('%Y%m%d-%H%M%S')}-{self.total}"
+
+        self.SetWorkflow('SaveImage1','filename_prefix',
+            st+"-1"
             )
         
         self.SetWorkflow('SaveImage2','filename_prefix',
-            f"\
-{self.CheckpointType}/\
-{self.CheckpointName}/\
-{self.CharName}/\
-{self.CheckpointName}-{self.CharName}-{tm}-{self.total}-2"
+            st+"-2"
             )
 
     def SetWildcard(self):        
@@ -987,6 +990,8 @@ class MyClass():
                 RandomWeight
                 )
             self.tiveChar=self.GetNow('dicLoraYml',self.CharName)
+
+
         
     
     def SetLoopMax(self):
@@ -1224,7 +1229,6 @@ class MyClass():
             # -------------------------
             self.SetSetupWorkflowToWorkflowApi()
             self.SetCheckpointLoaderSimple()
-            self.SetSaveImage()
             self.SetKSampler()
             #self.SetEmptyLatentImage() # SetSetupWorkflowToWorkflowApi
             #self.SetVAELoader() # SetSetupWorkflowToWorkflowApi
@@ -1232,6 +1236,7 @@ class MyClass():
             self.SetDicCheckpointYmlToWorkflowApi()
             self.SetChar()
             self.SetLora()
+            self.SetSaveImage()
 
             # self.SetTiveAll()
             # print('self.positive : ',self.positiveDics)
