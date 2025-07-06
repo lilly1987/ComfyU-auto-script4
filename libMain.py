@@ -839,7 +839,11 @@ class MyClass():
         self.SetWorkflow('PrimitiveStringMultilineN','value',yaml_data) 
 
         lpositive=list(positive.values())
+        lpositive.insert(0,'/**/')
+        lpositive.append('/**/')
         lnegative=list(negative.values())
+        lnegative.insert(0,'/**/')
+        lnegative.append('/**/')
         if RandomWeight(self.configYml.get("shuffleWildcard",[False,True])):
             if self.configYml.get("shuffleWildcardPrint",False):
                 print.Config('positive : ',lpositive)
