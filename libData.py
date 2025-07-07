@@ -2,9 +2,13 @@ from libFile import *
 from libYml import *
 from libPrintLog import *
 
-configYml="""
+configYmlRoot="""
 # --- 경로 설정 ---
 dataPath: ../ComfyU-auto-script-data  # 설정파일 폴더. 변경시 재실행 필요.
+"""
+
+configYml="""
+# --- 경로 설정 ---
 CheckpointPath: ../ComfyUI/models/checkpoints # Checkpoint 폴더. 변경시 재실행 필요.
 LoraPath: ../ComfyUI/models/Loras # Lora 폴더. 변경시 재실행 필요.
 LoraEtcPath: etc # LoraPath / etc 폴더. 변경시 재실행 필요. 하위폴더는 인식 안함.
@@ -37,16 +41,17 @@ noLoraWildcard: # Lora 파일을 안쓸 경우 Wildcard 설정
 # --- Weight 설정 ---
 CheckpointWeightPer: 0.5 # WeightCheckpoint.yml 파일을 쓸 확률
 CharWeightPer: 0.5 # WeightChar.yml 파일을 쓸 확률. 
+CharWeightDefault : 150 # [dataPath]/[CheckpointType]/lora/*.Yml 에 weight 값이 없을 경우 기본값.
 LoraWeightPer: 0.5 # WeightLora.yml 파일을 쓸 확률. 
 # --- 랜덤 설정 ---
 shuffleWildcard: # Wildcard를 섞을 여부. shuffleWildcardPrint이 True일 경우 섞기 전과 후를 출력함
   true: 1
   false: 1
 # --- 콘솔 출력 설정 ---
-checkpointYmlPrint: false # dataPath/CheckpointType/Checkpoint/*.Yml 를 가져온 값 출력 여부
-loraYmlPrint: false # dataPath/CheckpointType/lora/*.Yml 를 가져온 값 출력 여부
-setupWorkflowPrint: false # dataPath/CheckpointType/setupWorkflow.yml 출력 여부
-setupWildcardPrint: false # dataPath/CheckpointType/setupWildcard.yml 출력 여부
+checkpointYmlPrint: false # [dataPath]/[CheckpointType]/Checkpoint/*.Yml 를 가져온 값 출력 여부
+loraYmlPrint: false # [dataPath]/[CheckpointType]/lora/*.Yml 를 가져온 값 출력 여부
+setupWorkflowPrint: false # [dataPath]/[CheckpointType]/setupWorkflow.yml 출력 여부
+setupWildcardPrint: false # [dataPath]/[CheckpointType]/setupWildcard.yml 출력 여부
 LoraChangeWarnPrint: false # LoraChange 과정중 경고 출력 여부
 LoraChangePrint: false # LoraChange 과정중 와일드카드 관련 출력 여부
 WorkflowPrint: false # ComfyUI로 보낼기 직전 workflow_api 출력 여부
@@ -223,6 +228,7 @@ directorySetup={
     'Noob': directoryTypeSetup,
     'setupWildcard.yml': setupWildcard,
     'setupWorkflow.yml': setupWorkflow,
+    'config.yml': configYml,
 }
 
 def CreateDataFileDir():
@@ -232,9 +238,10 @@ def CreateDataFileDir():
         print.Warn('--------------------------------------------------------')
         print.Warn('"../ComfyU-auto-script-data-sample." 폴더에 샘플이 만들어졌습니다.')
         print.Warn('덮어쓰기 위험을 막기 위해 폴더명을 바꾼후 사용하세요.')
-        print.Warn('그리고 "config.yml" 파일의 "dataPath"항목을 바꾼 폴더명으로 바꾸세요.')
+        print.Warn('"./config.yml" 파일의 "dataPath"항목을 바꾼 폴더명으로 바꾸세요.')
+        print.Warn('"../ComfyU-auto-script-data-sample/config.yml" 파일의 내용을 적절하게 바꾸세요.')
         print.Warn('--------------------------------------------------------')
-        CreateYmlFile( 'config.yml',configYml)
+        CreateYmlFile( 'config.yml',configYmlRoot)
         exit(0)
 
 CreateDataFileDir()

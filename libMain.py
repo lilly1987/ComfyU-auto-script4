@@ -77,10 +77,10 @@ class MyClass():
             self.GetSetupWildcard(CheckpointType)
             self.GetSetupWorkflow(CheckpointType)
             self.GetWeightCheckpoint(CheckpointType)
-            self.GetWeightChar(CheckpointType)
             self.GetWeightLora(CheckpointType,delete)
             self.GetDicCheckpointYml(CheckpointType)
             self.GetDicLoraYml(CheckpointType)
+            self.GetWeightChar(CheckpointType)
             self.GetWorkflowApi(CheckpointType)
 
     def GetSetupWildcard(self,CheckpointType=None):
@@ -129,9 +129,18 @@ class MyClass():
         '''
         CharFileNames 먼저 설정 필요
         '''
+        WeightChar={}
         CharFileNames=self.typeDics[CheckpointType]['CharFileNames']
-        WeightChar=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightChar.yml")) 
-        WeightChar = {key: WeightChar[key] for key in CharFileNames if key in WeightChar}
+        WeightCharYml=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightChar.yml")) 
+        for key in CharFileNames:
+            weight=Get(self.typeDics,CheckpointType,'dicLoraYml',key,'weight' )
+            if weight:
+                WeightChar[key]= weight
+            elif key in WeightCharYml:
+                WeightChar[key]= WeightCharYml[key] 
+            else:
+                WeightChar[key]= self.configYml.get('CharWeightDefault',150)
+
         print.Value('WeightChar : ',CheckpointType,len(WeightChar)) 
         #self.typeDics[CheckpointType]['WeightChar']=WeightChar
         Set(self.typeDics,WeightChar,CheckpointType,'WeightChar')
@@ -1088,6 +1097,7 @@ class MyClass():
                     if r1=='lora':
                         print.Value('lora/*.yml ok', event)
                         self.GetDicLoraYml(r0)
+                        self.GetWeightChar(r0)
                         return
                 if r0=='setupWildcard.yml':
                     print.Value('setupWildcard.yml ok', event)
@@ -1096,6 +1106,10 @@ class MyClass():
                 if r0=='setupWorkflow.yml':
                     print.Value('setupWorkflowyml. ok', event)
                     self.GetSetupWorkflow()
+                    return
+                if r0=='config.yml':
+                    print.Value('config. ok', event)
+                    self.GetConfigYml()
                     return
                 if self.configYml.get('CallbackPrint',False):
                     print.Warn('dataPath not', path.parts)
@@ -1188,10 +1202,12 @@ class MyClass():
              print.exception(show_locals=True) 
                         
     def GetConfigYml(self):
-        self.configYml=ReadYml("config.yml")         
+        configYml=ReadYml("config.yml")         
+        update(configYml,ReadYml(Path(configYml.get('dataPath'),'config.yml')))
+        self.configYml=configYml
         if self.configYml.get('수정 안해서 작동 안시킴',False):
             print.Warn('---------------------------')
-            print.Warn('config.yml 끝까지 보세요')
+            print.Warn(f'{Path(configYml.get('dataPath'),'config.yml')} 끝까지 보세요')
             print.Warn('---------------------------')
             exit(0)
         self.CheckpointTypes=self.configYml.get('CheckpointTypes').keys()
@@ -1204,7 +1220,7 @@ class MyClass():
 
             # -------------------------
             # 변경 거의 없는 설정
-            self.configYml=ReadYml("config.yml") 
+            self.GetConfigYml()
 
             self.loraNum=0
 
@@ -1345,7 +1361,7 @@ class MyClass():
 
     def Check(self):
         try:
-            self.configYml=ReadYml("config.yml") 
+            self.GetConfigYml()
             self.Init(False)
             
             CheckpointTypes=self.configYml.get('CheckpointTypes').keys()
