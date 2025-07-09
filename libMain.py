@@ -798,7 +798,7 @@ class MyClass():
         st=f"\
 {self.CheckpointType}/\
 {self.CheckpointName}/\
-{st}{self.CharName}/\
+{self.CharName}{st}/\
 {self.CheckpointName}-{self.CharName}-\
 {time.strftime('%Y%m%d-%H%M%S')}-{self.total}"
 
