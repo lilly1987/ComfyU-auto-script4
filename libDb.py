@@ -15,38 +15,45 @@ class MyDB():
     def init(self,path):
         self.path = Path(path,'count.db')
         self.db = TinyDB(Path(path,'count.db'), storage=UTF8JSONStorage)
-        self.Combination: Table = self.db.table('Combination')
-        self.CheckpointType: Table = self.db.table('CheckpointType')
-        self.Checkpoint: Table = self.db.table('Checkpoint')
-        self.Char: Table = self.db.table('Char')
-        self.Loras: Table = self.db.table('Loras')
-        self.Lora: Table = self.db.table('Lora')
+        # self.Combination: Table = self.db.table('Combination')
+        # self.CheckpointType: Table = self.db.table('CheckpointType')
+        # self.Checkpoint: Table = self.db.table('Checkpoint')
+        # self.Char: Table = self.db.table('Char')
+        # self.Loras: Table = self.db.table('Loras')
+        # self.Lora: Table = self.db.table('Lora')
         self.query = Query()
 
     def update(self,CheckpointType: str, Checkpoint: str, Char: str,Loras:set[str]):
-        loras=list(Loras)
 
+        loras=list(Loras)
+        table: Table = self.db.table(f'{CheckpointType}-Lora')
         for Lora in Loras:
-            self._update(self.Lora,self.query.Lora == Lora,{'Lora': Lora,'count': 1})
+            self._update(
+                table,
+                self.query.Lora == Lora,
+                {'Lora': Lora,'count': 1}
+            )
 
         fields = {
-            'CheckpointType': CheckpointType,
+            # 'CheckpointType': CheckpointType,
             'Checkpoint': Checkpoint,
             'Char': Char,
             'Loras': loras
         }
 
         for key, value in fields.items():
-            self._update(getattr(self, key), getattr(self.query, key) == value, {key: value,'count': 1})
+            self._update(
+                self.db.table(f'{CheckpointType}-{key}'),
+                getattr(self.query, key) == value,
+                { key: value,'count': 1}
+            )
 
         self._update(
-            self.Combination,
-            (self.query.CheckpointType == CheckpointType) &
+            self.db.table(f'{CheckpointType}-Combination'), 
             (self.query.Checkpoint == Checkpoint) &
             (self.query.Char == Char) &
             (self.query.Loras == loras) ,
-            {
-                'CheckpointType': CheckpointType,
+            { 
                 'Checkpoint': Checkpoint,
                 'Char': Char,
                 'Loras': loras,   # 기본값으로 빈 리스트

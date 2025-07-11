@@ -16,6 +16,9 @@ def json_to_xlsx(file):
     # print("f : ",file)
     db = TinyDB(file, storage=UTF8JSONStorage)
     table_names = db.tables()
+    if not table_names:
+        print.Warn("count no")
+        return
     new_file = Path(file).with_suffix('.xlsx')
     if new_file.exists():
         new_file.unlink()
