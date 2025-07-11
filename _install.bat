@@ -3,11 +3,12 @@ git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack ..\ComfyUI\custom_node
 git clone https://github.com/ltdrdata/ComfyUI-Impact-Subpack ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack
 git clone https://github.com/ltdrdata/ComfyUI-Inspire-Pack ..\ComfyUI\custom_nodes\ComfyUI-Inspire-Pack
 git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts
-rem ..\python_embeded\python.exe -s -m pip install watchdog
-rem ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\requirements.txt
-rem ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Manager\requirements.txt
-rem ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack\requirements.txt
-rem ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts\requirements.txt
+..\python_embeded\python.exe -m pip install watchdog
+..\python_embeded\python.exe -m pip install openpyxl
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Manager\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts\requirements.txt
 start "notepad" "..\ComfyUI\custom_nodes\ComfyUI-Impact-Pack\impact-pack.ini"
 
 rem ..\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\comfyui_controlnet_aux\requirements.txt

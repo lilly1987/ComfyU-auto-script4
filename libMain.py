@@ -14,6 +14,7 @@ from libPrintLog import *
 from libUpdate import *
 from libDic import *
 from libType import *
+from libDb import *
 
 from itertools import islice
 from itertools import zip_longest
@@ -61,8 +62,13 @@ class MyClass():
         self.CharLoop=0
         self.QueueLoop=0      
         # -------------------------- 
+        self.mydb=MyDB()
+        # -------------------------- 
     
-    def Init(self,delete:bool=True):
+    def Init(self,delete:bool=True,db:bool=False):
+        if db:
+            self.mydb.init(self.configYml.get('dataPath'))
+
         CheckpointTypes=self.configYml.get('CheckpointTypes').keys()
         '''
         Comfy Queue Prompt
@@ -1291,6 +1297,7 @@ class MyClass():
 {self.CharName}, \
 {self.CheckpointType}, \
 ")
+            self.mydb.update(self.CheckpointType,self.CheckpointName,self.CharName,self.lorasSet)
             # -------------------------
             if self.Queue():
                 return
@@ -1320,7 +1327,7 @@ class MyClass():
             # -------------------------
             self.GetConfigYml()
             # -------------------------
-            self.Init()
+            self.Init(db=True)
             # -------------------------
             # fileObserver=FileObserverHandler(
             #     [
@@ -1358,6 +1365,11 @@ class MyClass():
             # os.makedirs('log', exist_ok=True)
 
         finally:
+            try:
+                self.mydb.json_to_xlsx()
+            except Exception as e:
+                print.exception(show_locals=True) 
+                pass
             print.save_html()
             print.Info(' === finally === ')
             
@@ -1417,5 +1429,6 @@ class MyClass():
             # os.makedirs('log', exist_ok=True)
 
         finally:
+
             #print.save_html()
             print.Info(' === finally === ')
