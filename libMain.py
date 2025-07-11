@@ -576,7 +576,7 @@ class MyClass():
                     for k2,v2 in dic.items():
                         
                         if perFirsts and perCnt>=perMax:
-                            print('perCnt, perMax : ',perCnt,perMax)
+                            print.Value('perCnt, perMax : ',perCnt,perMax)
                             break
 
                         per=v2.get('per',0)
@@ -1243,6 +1243,11 @@ class MyClass():
             self.loraNum=0
 
             if self.CheckpointLoopCnt==0:
+                try:
+                    self.mydb.json_to_xlsx()
+                except Exception as e:
+                    print.exception(show_locals=True) 
+                    pass
                 self.CheckpointChange()
                 self.CheckpointLoopCnt+=1
                 self.CharLoopCnt=0

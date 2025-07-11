@@ -23,11 +23,11 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
                         response=request.urlopen(req) 
                     except HTTPError as e: 
                         progress.stop()
-                        print('Error code: ', e.code)
+                        print.Err('Error code: ', e.code)
                         return True
                     except URLError as e:
                         progress.stop()
-                        print('Reason: ', e.reason)
+                        print.Warn('Reason: ', e.reason)
                         
                     else:
                         break
@@ -77,7 +77,7 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
             logger.exception("HTTPError 발생: %s", e)
             return False
         except URLError as e:
-            print('Reason: ', e.reason)
+            print.Warn('Reason: ', e.reason)
         else:
             break                
                     

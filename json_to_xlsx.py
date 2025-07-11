@@ -5,6 +5,7 @@ from pathlib import *
 sys.path.append(os.getcwd())
 
 from libPrintLog import *
+from libYml import *
 
 from tinydb.storages import JSONStorage
 class UTF8JSONStorage(JSONStorage):
@@ -38,9 +39,14 @@ def json_to_xlsx(file):
                 writer.sheets[sheet_name].column_dimensions[
                     chr(65 + i)
                 ].width = max_len + 2  # 약간 여유를 둠
-    print("count file : ",new_file)
+    print.Info("count file : ",new_file)
 
 # 명령줄 실행용
-if __name__ == '__main__' or len(sys.argv) < 1:
-    for file in sys.argv[1:]:
-        json_to_xlsx(file)
+if __name__ == '__main__':
+    #print(sys.argv)
+    if len(sys.argv) < 2:
+        configYml=ReadYml("config.yml")         
+        json_to_xlsx(Path(configYml.get('dataPath'),'count.db'))
+    else:
+        for file in sys.argv[1:]:
+            json_to_xlsx(file)
