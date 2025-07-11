@@ -808,25 +808,33 @@ class MyClass():
 
     def SetSaveImage(self): 
         
-        if self.tiveChar:
-            st='+'
+        if self.tiveCheckpoint:
+            tcp='+'
         else:
-            st=''
+            tcp=''
+        
+        if self.tiveChar:
+            tch='+'
+        else:
+            tch=''
 
-        st=f"\
+        ff=f"\
 {self.CheckpointType}/\
-{self.CheckpointName}/\
-{self.CharName}{st}/\
+{self.CheckpointName}{tcp}/\
+{self.CharName}{tch}/\
 {self.CheckpointName}-{self.CharName}-\
 {time.strftime('%Y%m%d-%H%M%S')}-{self.total}"
 
         self.SetWorkflow('SaveImage1','filename_prefix',
-            st+"-1"
+            ff+"-1"
             )
         
         self.SetWorkflow('SaveImage2','filename_prefix',
-            st+"-2"
+            ff+"-2"
             )
+
+        if self.configYml.get('noSaveImage1',False):
+            print('SaveImage1',Pop(self.workflow_api,'SaveImage1',"inputs",'images') )
 
     def SetWildcard(self):        
         self.positiveDics={}

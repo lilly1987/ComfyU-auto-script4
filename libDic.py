@@ -48,14 +48,14 @@ def Pop(d:dict, *keys,default=None):
     있을경우 '값' 반환
     """
     current = d
-    for key in keys[:-1]:  # 마지막 키 전까지 이동
+    for key in keys[:-2]:  # 마지막 키 전까지 이동
         current = current.get(key)
         if current is None or not isinstance(current, dict):  # 키가 없거나 dict이 아니면 종료
             #printErr('Set no key : ',d)  
             #printWarn('Set no key : ',key, *keys)            
             return default
-    if keys[-1] in current:  # 마지막 키가 존재하면 업데이트
-        return current[keys[-1]].pop
+    if keys[-2] in current:  # 마지막 키가 존재하면 업데이트
+        return current[keys[-2]].pop(keys[-1],)
     else:        
         #printErr('Get no key : ',d)  
         #printWarn('Set no key : ',key , *keys)  
