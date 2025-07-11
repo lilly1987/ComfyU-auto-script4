@@ -132,6 +132,7 @@ class MyClass():
         WeightChar={}
         CharFileNames=self.typeDics[CheckpointType]['CharFileNames']
         WeightCharYml=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightChar.yml")) 
+
         for key in CharFileNames:
             weight=Get(self.typeDics,CheckpointType,'dicLoraYml',key,'weight' )
             if weight:
@@ -149,11 +150,20 @@ class MyClass():
         '''
         CheckpointFileNames 먼저 설정 필요
         '''
-        CheckpointFileNames=self.typeDics[CheckpointType]['CheckpointFileNames']
-        WeightCheckpoint=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightCheckpoint.yml")) 
-        WeightCheckpoint = {key: WeightCheckpoint[key] 
-                            for key in CheckpointFileNames 
-                            if key in WeightCheckpoint}
+        WeightCheckpoint = {} 
+        checkpointFileNames=self.typeDics[CheckpointType]['CheckpointFileNames']
+        WeightCheckpointYml=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightCheckpoint.yml")) 
+
+        
+        for key in checkpointFileNames:
+            weight=Get(self.typeDics,CheckpointType,'dicCheckpointYml',key,'weight' )
+            if weight:
+                WeightCheckpoint[key]= weight
+            elif key in WeightCheckpointYml:
+                WeightCheckpoint[key]= WeightCheckpointYml[key] 
+            else:
+                WeightCheckpoint[key]= self.configYml.get('CheckpoinWeightDefault',150)
+
         print.Value('WeightCheckpoint : ',CheckpointType,len(WeightCheckpoint)) 
         #self.typeDics[CheckpointType]['WeightCheckpoint']=WeightCheckpoint
         Set(self.typeDics,WeightCheckpoint,CheckpointType,'WeightCheckpoint')
@@ -161,11 +171,13 @@ class MyClass():
     def GetWeightLora(self,CheckpointType,delete:bool=True):
         WeightLora:dict=ReadYml(Path(self.configYml.get('dataPath'),CheckpointType,"WeightLora.yml")) 
         print.Value('WeightLora : ',CheckpointType,len(WeightLora)) 
+
         for k, v in WeightLora.items():
             if not isinstance(v, dict):
                 continue
             dic = v.get('dic', {})
             print.Value('WeightLora dic : ',CheckpointType,k,len(dic)) 
+
         #self.typeDics[CheckpointType]['WeightLora']=WeightLora
         Set(self.typeDics,WeightLora,CheckpointType,'WeightLora')
         if delete:
