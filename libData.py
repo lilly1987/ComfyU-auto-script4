@@ -40,9 +40,9 @@ noLoraWildcard: # Lora 파일을 안쓸 경우 Wildcard 설정
     noLora: ''
 # --- Weight 설정 ---
 CheckpointWeightPer: 0.5 # WeightCheckpoint.yml 파일을 쓸 확률
-CharWeightPer: 0.5 # WeightChar.yml 파일을 쓸 확률. 
-CharWeightDefault : 150 # [dataPath]/[CheckpointType]/lora/*.Yml 에 weight 값이 없을 경우 기본값.
-LoraWeightPer: 0.5 # WeightLora.yml 파일을 쓸 확률. 
+CharWeightPer: 0.75 # char weight를 쓸 확률. 가중치는 WeightChar.yml 파일과 [dataPath]/[CheckpointType]\lora\*.yml파일의 weight 값을 씀
+CharWeightDefault : 100 # [dataPath]/[CheckpointType]/lora/*.Yml 에 weight 값이 없을 경우 기본값.
+LoraWeightPer: 0.75 # lora weight를 쓸 확률. 가중치는 WeightLora.yml 파일과 [dataPath]/[CheckpointType]\lora\*.yml파일의 weight 값을 씀 
 # --- 랜덤 설정 ---
 shuffleWildcard: # Wildcard를 섞을 여부. shuffleWildcardPrint이 True일 경우 섞기 전과 후를 출력함
   true: 1
