@@ -5,10 +5,19 @@ git clone https://github.com/ltdrdata/ComfyUI-Inspire-Pack ..\ComfyUI\custom_nod
 git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts
 ..\python_embeded\python.exe -m pip install watchdog
 ..\python_embeded\python.exe -m pip install openpyxl
+..\python_embeded\python.exe -m pip install ruamel.yaml
+..\python_embeded\python.exe -m pip install tinydb
+..\python_embeded\python.exe -m pip install pandas
+..\python_embeded\python.exe -m pip install webcolors
+..\python_embeded\python.exe -m pip install piexif
+
+..\python_embeded\python.exe -m pip install scikit-image
+
 ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\requirements.txt
 ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Manager\requirements.txt
+..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Impact-Pack\requirements.txt
 ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Impact-Subpack\requirements.txt
-..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts\requirements.txt
+rem ..\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\ComfyUI-Custom-Scripts\requirements.txt
 start "notepad" "..\ComfyUI\custom_nodes\ComfyUI-Impact-Pack\impact-pack.ini"
 
 rem ..\ComfyUI_windows_portable\python_embeded\python.exe -s -m pip install -r ..\ComfyUI\custom_nodes\comfyui_controlnet_aux\requirements.txt
