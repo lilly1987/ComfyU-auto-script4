@@ -94,8 +94,8 @@ def Set(dic, value, *deep):
 def convert_paths(obj):
     if isinstance(obj, Path):
         obj=str(obj)
-        print.Err('convert_paths',(obj))       
-        logger.error((obj))
+        # print.Err('convert_paths',(obj))       
+        # logger.error((obj))
         return (obj)
     elif isinstance(obj, dict):
         return {k: convert_paths(v) for k, v in obj.items()}
