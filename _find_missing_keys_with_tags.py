@@ -178,7 +178,7 @@ def process_type(type_name):
                 if sorted_tags:
                     # 정렬된 태그를 char 필드에 추가
                     # YAML에서 작은따옴표 사용 시 작은따옴표 자체를 이중으로 처리
-                    char_value = f"1girl , {sorted_tags}"
+                    char_value = f"{sorted_tags}"
                     # 작은따옴표가 있으면 두 개로 변경 (YAML 작은따옴표 문자열에서 이스케이프)
                     char_value_escaped = char_value.replace("'", "''")
                     f.write(f'    char: \'{char_value_escaped}\'\n')
