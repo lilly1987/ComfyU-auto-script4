@@ -1,7 +1,7 @@
 import random
 from libPrintLog import *
 from itertools import islice
-
+#RandomWeightCnt({'a':1,'b':2,'c':3})
 def RandomWeightCnt(d={},cnt=1,k=[]):
     """
     d={ 키값: 가중치 }

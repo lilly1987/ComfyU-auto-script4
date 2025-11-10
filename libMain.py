@@ -53,6 +53,9 @@ class MyClass():
         self.tiveWeight={}
         self.positiveDics={}
         self.negativeDics={}
+        self.tiveCheckpoint={}
+        self.tiveChar={}
+        self.tiveLora={}
         # ---------------------        
         self.total=0
         self.CheckpointLoopCnt=0
@@ -60,7 +63,8 @@ class MyClass():
         self.QueueLoopCnt=0
         self.CheckpointLoop=0
         self.CharLoop=0
-        self.QueueLoop=0      
+        self.QueueLoop=0
+        self.loraNum=0
         # -------------------------- 
         self.mydb=MyDB()
         # -------------------------- 
@@ -240,17 +244,17 @@ class MyClass():
                                 print.Warn('LoraChange no5 : ',k3 )
                 elif isinstance(loras, str):
                     lorasTmp=None
-                    if k3 in LoraFileNames:
-                        lorasTmp=(k3)
+                    if loras in LoraFileNames:
+                        lorasTmp=loras
                     else:
-                        logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, {k3} ')
+                        logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, {loras} ')
                         if self.configYml.get('LoraChangeWarnPrint',False):
-                            print.Warn('LoraChange no4 : ',k3 )
+                            print.Warn('LoraChange no4 : ',loras )
                 else:
                     lorasTmp=None                    
-                    logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2} ')
+                    logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2}, type={type(loras)} ')
                     if self.configYml.get('LoraChangeWarnPrint',False):
-                        print.Warn('LoraChange no3 : ',k3 )
+                        print.Warn('LoraChange no3 : ',k2, f'type={type(loras)}')
 
                 if not lorasTmp: 
                     logger.warning(f'LoraChange no : {CheckpointType}, {k1}, {k2} ')

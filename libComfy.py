@@ -48,8 +48,6 @@ def queue_prompt_wait(url="http://127.0.0.1:8188/prompt", max=1):
         return True
     else:
         return False
-        
-    time.sleep(2)
     
 def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
     try:
@@ -84,5 +82,3 @@ def queue_prompt(prompt,url="http://127.0.0.1:8188/prompt"):
     print(f"send" )
         
     return False
-        
-    time.sleep(2)
