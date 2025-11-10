@@ -177,18 +177,23 @@ def process_type(type_name):
                 
                 if sorted_tags:
                     # 정렬된 태그를 char 필드에 추가
-                    # YAML에서 특수문자 이스케이프 처리
+                    # YAML에서 작은따옴표 사용 시 작은따옴표 자체를 이중으로 처리
                     char_value = f"1girl , {sorted_tags}"
-                    # 따옴표 안에서 큰따옴표는 이스케이프 필요
-                    char_value_escaped = char_value.replace('"', '\\"')
-                    f.write(f'    char: "{char_value_escaped}"\n')
+                    # 작은따옴표가 있으면 두 개로 변경 (YAML 작은따옴표 문자열에서 이스케이프)
+                    char_value_escaped = char_value.replace("'", "''")
+                    f.write(f'    char: \'{char_value_escaped}\'\n')
                     added_count += 1
                 else:
                     # 태그가 없거나 평균 이상인 태그가 없으면 기본값 사용
-                    f.write(f'    char: "{template["positive"]["char"]}"\n')
+                    default_char = template["positive"]["char"]
+                    default_char_escaped = default_char.replace("'", "''")
+                    f.write(f'    char: \'{default_char_escaped}\'\n')
                     no_tag_count += 1
                 
-                f.write(f'    #dress: "{template["positive"]["#dress"]}"\n')
+                # dress 필드도 작은따옴표 이스케이프 처리
+                dress_value = template["positive"]["#dress"]
+                dress_value_escaped = dress_value.replace("'", "''")
+                f.write(f'    #dress: \'{dress_value_escaped}\'\n')
                 f.write('\n')
         
         print(f"  [OK] {len(missing)}개의 누락된 키가 추가되었습니다.")
