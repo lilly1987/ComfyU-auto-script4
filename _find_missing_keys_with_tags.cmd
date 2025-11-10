@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 set "PYTHON_EXE=W:\ComfyUI_windows_portable\python_embeded\python.exe"
-set "SCRIPT_PATH=%~dp0find_missing_keys_with_tags.py"
+set "SCRIPT_PATH=%~dp0_find_missing_keys_with_tags.py"
 
 REM 현재 디렉토리를 스크립트가 있는 디렉토리로 변경
 cd /d "%~dp0"
