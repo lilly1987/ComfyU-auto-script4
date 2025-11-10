@@ -171,7 +171,7 @@ def process_type(type_name):
                 sorted_tags = process_tag_frequency(tag_frequency, max_tags=MAX_TAGS)
                 
                 # 키값을 따옴표로 감싸기
-                f.write(f'"{key}":\n')
+                f.write(f'"{key}": # auto\n')
                 f.write(f'  weight: {template["weight"]}\n')
                 f.write(f'  positive:\n')
                 
