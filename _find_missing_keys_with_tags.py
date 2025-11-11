@@ -2,18 +2,28 @@
 """
 폴더의 safetensors 파일에서 ss_tag_frequency를 추출하여 char.yml 파일에 추가
 """
-import yaml
-import os
-import json
 import sys
+import os
+import yaml
+import json
 from collections import defaultdict
 from safetensors import safe_open
 
+# 스크립트가 있는 디렉토리를 Python 경로에 추가
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+from tag_utils import load_excluded_tags, is_tag_excluded, load_config
+
+# config.yml에서 설정 로드
+config = load_config()
+
 # 작업 디렉토리
-base_dir = r'W:\ComfyUI_windows_portable'
+base_dir = config.get('base_dir', r'W:\ComfyUI_windows_portable')
 
 # 처리할 타입 리스트 (IL, Pony 등)
-types = ['IL', 'Pony']
+types = config.get('types', ['IL', 'Pony'])
 
 # 기본 템플릿 형식
 template = {
@@ -26,6 +36,9 @@ template = {
 
 # 태그 최대 개수 제한
 MAX_TAGS = 64
+
+# 제거할 태그 목록 (config.yml 파일에서 로드)
+EXCLUDED_TAGS = load_excluded_tags()
 
 def extract_ss_tag_frequency(file_path):
     """
@@ -52,7 +65,7 @@ def extract_ss_tag_frequency(file_path):
     except Exception as e:
         return None
 
-def process_tag_frequency(tag_frequency, max_tags=64):
+def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None):
     """
     ss_tag_frequency를 처리하여 정렬된 태그 문자열을 반환합니다.
     평균 이상인 태그만 기록하고, 최대 개수를 제한합니다.
@@ -60,12 +73,16 @@ def process_tag_frequency(tag_frequency, max_tags=64):
     Args:
         tag_frequency: ss_tag_frequency 딕셔너리
         max_tags: 최대 태그 개수 (기본값: 64)
+        excluded_tags: 제거할 태그 목록 (기본값: None)
     
     Returns:
         정렬된 태그 문자열 (예: "1girl, 3d, belt, boots, bare shoulders")
     """
     if not tag_frequency:
         return None
+    
+    if excluded_tags is None:
+        excluded_tags = EXCLUDED_TAGS
     
     # 1차 키가 여러개인 경우 2차의 건수를 합산
     tag_counts = defaultdict(int)
@@ -78,12 +95,21 @@ def process_tag_frequency(tag_frequency, max_tags=64):
     if not tag_counts:
         return None
     
+    # 제거할 태그 필터링 (정규식 패턴과 문자열 패턴 모두 지원)
+    tag_counts_filtered = {
+        tag: count for tag, count in tag_counts.items() 
+        if not is_tag_excluded(tag, excluded_tags)
+    }
+    
+    if not tag_counts_filtered:
+        return None
+    
     # 건수의 평균 계산
-    counts = list(tag_counts.values())
+    counts = list(tag_counts_filtered.values())
     average_count = sum(counts) / len(counts) if counts else 0
     
     # 평균 이상인 태그만 필터링
-    filtered_tags = [(tag, count) for tag, count in tag_counts.items() if count >= average_count]
+    filtered_tags = [(tag, count) for tag, count in tag_counts_filtered.items() if count >= average_count]
     
     # 값을 기준으로 역순 정렬 (큰 값부터)
     sorted_tags = sorted(filtered_tags, key=lambda x: x[1], reverse=True)
@@ -156,6 +182,10 @@ def process_type(type_name):
     
     # 누락된 키를 YML 파일에 추가
     print(f"\n  누락된 키를 YML 파일에 추가 중...")
+    if EXCLUDED_TAGS:
+        print(f"    제외 태그 개수: {len(EXCLUDED_TAGS)}개")
+    else:
+        print(f"    경고: 제외 태그 목록이 비어있습니다.")
     
     added_count = 0
     no_tag_count = 0
@@ -168,7 +198,7 @@ def process_type(type_name):
                 
                 # ss_tag_frequency 추출
                 tag_frequency = extract_ss_tag_frequency(file_path)
-                sorted_tags = process_tag_frequency(tag_frequency, max_tags=MAX_TAGS)
+                sorted_tags = process_tag_frequency(tag_frequency, max_tags=MAX_TAGS, excluded_tags=EXCLUDED_TAGS)
                 
                 # 키값을 따옴표로 감싸기
                 f.write(f'"{key}": # auto\n')
