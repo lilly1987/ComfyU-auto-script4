@@ -85,7 +85,8 @@ def remove_excluded_tags_from_string(tag_string, excluded_tags):
 
 def process_char_yml(yml_path, excluded_tags):
     """
-    char.yml 파일을 읽어서 char 필드에서 제외 태그를 제거합니다.
+    char.yml 파일을 읽어서 char 필드에서 제외 태그를 제거하고,
+    dress 키가 없으면 추가합니다.
     주석은 보존됩니다.
     
     Args:
@@ -93,11 +94,11 @@ def process_char_yml(yml_path, excluded_tags):
         excluded_tags: 제외 태그 목록
     
     Returns:
-        (수정된 YAML 데이터, 수정된 키 개수, 제거된 태그 총 개수)
+        (수정된 YAML 데이터, 수정된 키 개수, 제거된 태그 총 개수, 추가된 dress 키 개수)
     """
     if not os.path.exists(yml_path):
         print(f"  경고: YML 파일이 존재하지 않습니다: {yml_path}")
-        return None, 0, 0
+        return None, 0, 0, 0
     
     # YML 파일 읽기 (ruamel.yaml로 주석 보존)
     print(f"  YML 파일 읽는 중: {yml_path}")
@@ -106,24 +107,28 @@ def process_char_yml(yml_path, excluded_tags):
             yml_data = yaml.load(f)
     except Exception as e:
         print(f"  오류: YML 파일 읽기 실패: {e}")
-        return None, 0, 0
+        return None, 0, 0, 0
     
     if not yml_data:
         print(f"  경고: YML 파일이 비어있습니다.")
-        return None, 0, 0
+        return None, 0, 0, 0
     
-    # 각 키의 positive.char 필드에서 제외 태그 제거
+    # 각 키의 positive.char 필드에서 제외 태그 제거 및 dress 키 추가
     modified_count = 0
     total_removed_tags = 0
+    added_dress_count = 0
     
     for key, value in yml_data.items():
         if not isinstance(value, dict):
             continue
         
-        # positive.char 필드 확인
+        # positive 필드 확인
         if 'positive' in value and isinstance(value['positive'], dict):
-            if 'char' in value['positive']:
-                char_value = value['positive']['char']
+            positive_dict = value['positive']
+            
+            # char 필드 처리
+            if 'char' in positive_dict:
+                char_value = positive_dict['char']
                 
                 if isinstance(char_value, str):
                     # 제외 태그 제거
@@ -134,8 +139,19 @@ def process_char_yml(yml_path, excluded_tags):
                         modified_count += 1
                         total_removed_tags += removed_count
                         print(f"    - {key}: {removed_count}개 태그 제거")
+            
+            # dress 키가 없으면 추가
+            if 'char' in positive_dict:
+                # dress 또는 #dress 키가 있는지 확인
+                has_dress = 'dress' in positive_dict or '#dress' in positive_dict
+                
+                if not has_dress:
+                    # dress 키 추가
+                    yml_data[key]['positive']['dress'] = '{   |4::__dress__},'
+                    added_dress_count += 1
+                    print(f"    - {key}: dress 키 추가")
     
-    return yml_data, modified_count, total_removed_tags
+    return yml_data, modified_count, total_removed_tags, added_dress_count
 
 def save_char_yml(yml_path, yml_data):
     """
@@ -170,19 +186,24 @@ def process_type(type_name):
     print(f"  제외 태그 개수: {len(EXCLUDED_TAGS)}개")
     
     # char.yml 파일 처리
-    modified_data, modified_count, total_removed_tags = process_char_yml(yml_path, EXCLUDED_TAGS)
+    modified_data, modified_count, total_removed_tags, added_dress_count = process_char_yml(yml_path, EXCLUDED_TAGS)
     
     if modified_data is None:
         return
     
-    if modified_count == 0:
+    if modified_count == 0 and added_dress_count == 0:
         print(f"  [OK] 수정할 항목이 없습니다.")
         return
     
     # 수정된 내용 저장
     print(f"\n  수정된 내용 저장 중...")
     if save_char_yml(yml_path, modified_data):
-        print(f"  [OK] {modified_count}개 키에서 총 {total_removed_tags}개 태그가 제거되었습니다.")
+        messages = []
+        if modified_count > 0:
+            messages.append(f"{modified_count}개 키에서 총 {total_removed_tags}개 태그 제거")
+        if added_dress_count > 0:
+            messages.append(f"{added_dress_count}개 키에 dress 키 추가")
+        print(f"  [OK] {', '.join(messages)}")
     else:
         print(f"  [실패] 파일 저장에 실패했습니다.")
 
