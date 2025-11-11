@@ -148,3 +148,95 @@ def load_config(yml_path=None):
         print(f"  오류: config.yml 파일 읽기 실패: {e}")
         return {}
 
+def extract_dress_tags_from_string(tag_string, dress_tags):
+    """
+    태그 문자열에서 dress 태그를 추출합니다.
+    중복을 제거하고 정규화된 태그로 확인합니다.
+    
+    Args:
+        tag_string: 쉼표로 구분된 태그 문자열
+        dress_tags: dress 태그 목록
+    
+    Returns:
+        추출된 dress 태그 리스트 (중복 제거됨)
+    """
+    if not tag_string or not tag_string.strip() or not dress_tags:
+        return []
+    
+    # 쉼표로 분리하여 태그 리스트 만들기
+    tags = [tag.strip() for tag in tag_string.split(',')]
+    
+    # dress 태그 추출 (중복 제거)
+    dress_tag_list = []
+    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
+    
+    for tag in tags:
+        if not tag:
+            continue
+        if is_tag_excluded(tag, dress_tags):  # dress_tags에 해당하는 태그
+            normalized = normalize_tag(tag)
+            if normalized not in seen_normalized:
+                seen_normalized.add(normalized)
+                dress_tag_list.append(tag)  # 원본 태그 유지
+    
+    return dress_tag_list
+
+def remove_excluded_tags_from_string(tag_string, excluded_tags, dress_tags=None):
+    """
+    태그 문자열에서 제외 태그와 중복 태그를 제거합니다.
+    dress 태그도 제거할 수 있습니다.
+    
+    Args:
+        tag_string: 쉼표로 구분된 태그 문자열 (예: "1girl, 2d, belt, smile")
+        excluded_tags: 제외 태그 목록
+        dress_tags: dress 태그 목록 (제거할 태그, None이면 제거 안함)
+    
+    Returns:
+        (필터링된 태그 문자열, 제거된 태그 개수)
+    """
+    if not tag_string or not tag_string.strip():
+        return tag_string, 0
+    
+    # 쉼표로 분리하여 태그 리스트 만들기
+    tags = [tag.strip() for tag in tag_string.split(',')]
+    
+    # 빈 태그 제거 및 제외 태그 필터링, 중복 제거
+    filtered_tags = []
+    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
+    removed_count = 0
+    
+    for tag in tags:
+        if not tag:  # 빈 태그는 제거
+            continue
+        
+        # 제외 태그인지 확인
+        if is_tag_excluded(tag, excluded_tags):
+            removed_count += 1
+            continue
+        
+        # dress 태그인지 확인 (제거할 경우)
+        if dress_tags and is_tag_excluded(tag, dress_tags):
+            removed_count += 1
+            continue
+        
+        # 정규화된 태그로 중복 확인 (언더스코어와 공백을 동일하게 처리)
+        normalized = normalize_tag(tag)
+        if normalized not in seen_normalized:
+            seen_normalized.add(normalized)
+            filtered_tags.append(tag)  # 원본 태그 유지 (대소문자, 언더스코어 등)
+        else:
+            removed_count += 1  # 중복 태그 제거
+    
+    # 필터링된 태그를 다시 쉼표로 연결
+    # 태그가 모두 제거된 경우 원래 형식 유지 (예: " , " 또는 "")
+    if not filtered_tags:
+        # 원본에 태그가 있었지만 모두 제거된 경우
+        if tags and any(tag for tag in tags if tag):  # 빈 태그가 아닌 태그가 있었다면
+            result = " , "  # 기본 형식 유지
+        else:
+            result = tag_string  # 원본 그대로
+    else:
+        result = ', '.join(filtered_tags)
+    
+    return result, removed_count
+

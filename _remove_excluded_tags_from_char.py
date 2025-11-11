@@ -4,6 +4,7 @@ char.yml 파일의 'char' 필드에서 EXCLUDED_TAGS에 해당하는 태그를 �
 """
 import sys
 import os
+import re
 
 # 스크립트가 있는 디렉토리를 Python 경로에 추가
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +12,7 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
 from ruamel.yaml import YAML
-from tag_utils import load_excluded_tags, is_tag_excluded, load_config, normalize_tag, load_dress_tags
+from tag_utils import load_excluded_tags, is_tag_excluded, load_config, normalize_tag, load_dress_tags, extract_dress_tags_from_string, remove_excluded_tags_from_string
 
 # ruamel.yaml 인스턴스 생성 (round-trip 모드로 주석 보존)
 yaml = YAML()
@@ -34,97 +35,65 @@ EXCLUDED_TAGS = load_excluded_tags()
 # dress 필드로 이동할 태그 목록 (config.yml 파일에서 로드)
 DRESS_TAGS = load_dress_tags()
 
-def extract_dress_tags_from_string(tag_string, dress_tags):
+def extract_tags_from_dress_field(dress_value):
     """
-    태그 문자열에서 dress 태그를 추출합니다.
+    dress 필드 값에서 태그를 추출합니다.
+    형식: '{  태그1, 태그2 |4::__dress__},' 또는 '{   |4::__dress__},'
+    
+    Args:
+        dress_value: dress 필드 값 문자열
+    
+    Returns:
+        추출된 태그 리스트
+    """
+    if not dress_value or not isinstance(dress_value, str):
+        return []
+    
+    # '{  태그1, 태그2 |4::__dress__},' 형식에서 태그 부분 추출
+    # '{' 와 '|' 사이의 부분을 추출
+    match = re.search(r'\{([^|]+)\|', dress_value)
+    if match:
+        tags_str = match.group(1).strip()
+        if tags_str:
+            # 쉼표로 분리하여 태그 리스트 만들기
+            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            return tags
+    return []
+
+def merge_dress_tags(existing_tags, new_tags):
+    """
+    기존 dress 태그와 새로운 dress 태그를 병합합니다.
     중복을 제거하고 정규화된 태그로 확인합니다.
     
     Args:
-        tag_string: 쉼표로 구분된 태그 문자열
-        dress_tags: dress 태그 목록
+        existing_tags: 기존 태그 리스트
+        new_tags: 새로운 태그 리스트
     
     Returns:
-        추출된 dress 태그 리스트 (중복 제거됨)
+        병합된 태그 리스트 (중복 제거됨)
     """
-    if not tag_string or not tag_string.strip() or not dress_tags:
-        return []
+    merged_tags = []
+    seen_normalized = set()
     
-    # 쉼표로 분리하여 태그 리스트 만들기
-    tags = [tag.strip() for tag in tag_string.split(',')]
-    
-    # dress 태그 추출 (중복 제거)
-    dress_tag_list = []
-    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
-    
-    for tag in tags:
+    # 기존 태그 추가
+    for tag in existing_tags:
         if not tag:
             continue
-        if is_tag_excluded(tag, dress_tags):  # dress_tags에 해당하는 태그
-            normalized = normalize_tag(tag)
-            if normalized not in seen_normalized:
-                seen_normalized.add(normalized)
-                dress_tag_list.append(tag)  # 원본 태그 유지
-    
-    return dress_tag_list
-
-def remove_excluded_tags_from_string(tag_string, excluded_tags, dress_tags=None):
-    """
-    태그 문자열에서 제외 태그와 중복 태그를 제거합니다.
-    dress 태그도 제거할 수 있습니다.
-    
-    Args:
-        tag_string: 쉼표로 구분된 태그 문자열 (예: "1girl, 2d, belt, smile")
-        excluded_tags: 제외 태그 목록
-        dress_tags: dress 태그 목록 (제거할 태그, None이면 제거 안함)
-    
-    Returns:
-        (필터링된 태그 문자열, 제거된 태그 개수)
-    """
-    if not tag_string or not tag_string.strip():
-        return tag_string, 0
-    
-    # 쉼표로 분리하여 태그 리스트 만들기
-    tags = [tag.strip() for tag in tag_string.split(',')]
-    
-    # 빈 태그 제거 및 제외 태그 필터링, 중복 제거
-    filtered_tags = []
-    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
-    removed_count = 0
-    
-    for tag in tags:
-        if not tag:  # 빈 태그는 제거
-            continue
-        
-        # 제외 태그인지 확인
-        if is_tag_excluded(tag, excluded_tags):
-            removed_count += 1
-            continue
-        
-        # dress 태그인지 확인 (제거할 경우)
-        if dress_tags and is_tag_excluded(tag, dress_tags):
-            removed_count += 1
-            continue
-        
-        # 정규화된 태그로 중복 확인 (언더스코어와 공백을 동일하게 처리)
         normalized = normalize_tag(tag)
         if normalized not in seen_normalized:
             seen_normalized.add(normalized)
-            filtered_tags.append(tag)  # 원본 태그 유지 (대소문자, 언더스코어 등)
-        else:
-            removed_count += 1  # 중복 태그 제거
+            merged_tags.append(tag)
     
-    # 필터링된 태그를 다시 쉼표로 연결
-    # 태그가 모두 제거된 경우 원래 형식 유지 (예: " , " 또는 "")
-    if not filtered_tags:
-        # 원본에 태그가 있었지만 모두 제거된 경우
-        if tags and any(tag for tag in tags if tag):  # 빈 태그가 아닌 태그가 있었다면
-            result = " , "  # 기본 형식 유지
-        else:
-            result = tag_string  # 원본 그대로
-    else:
-        result = ', '.join(filtered_tags)
+    # 새로운 태그 추가 (중복 제거)
+    for tag in new_tags:
+        if not tag:
+            continue
+        normalized = normalize_tag(tag)
+        if normalized not in seen_normalized:
+            seen_normalized.add(normalized)
+            merged_tags.append(tag)
     
-    return result, removed_count
+    return merged_tags
 
 def process_char_yml(yml_path, excluded_tags, dress_tags):
     """
@@ -197,22 +166,39 @@ def process_char_yml(yml_path, excluded_tags, dress_tags):
                             print(f"    - {key}: {removed_count}개 태그 제거")
                     
                     # dress 필드 처리 (char 키가 있으면 항상 체크)
-                    has_dress = 'dress' in positive_dict or '#dress' in positive_dict
+                    has_dress = 'dress' in positive_dict
+                    existing_dress_value = positive_dict.get('dress', '')
                     
                     if dress_tag_list:
-                        # dress 태그들을 문자열로 변환
-                        dress_tags_str = ', '.join(dress_tag_list)
-                        dress_value = f'{{  {dress_tags_str} |4::__dress__}},'
+                        # 기존 dress 필드에서 태그 추출 (있으면)
+                        existing_dress_tags = []
+                        if has_dress and existing_dress_value:
+                            existing_dress_tags = extract_tags_from_dress_field(existing_dress_value)
+                        
+                        # 기존 태그와 새로운 태그 병합
+                        merged_dress_tags = merge_dress_tags(existing_dress_tags, dress_tag_list)
+                        
+                        # 병합된 태그들을 문자열로 변환
+                        if merged_dress_tags:
+                            dress_tags_str = ', '.join(merged_dress_tags)
+                            dress_value = f'{{  {dress_tags_str} |4::__dress__}},'
+                        else:
+                            dress_value = '{   |4::__dress__},'
                         
                         # dress 키가 있으면 업데이트, 없으면 추가
                         if has_dress:
-                            yml_data[key]['positive']['dress'] = dress_value
-                            modified_dress_count += 1
-                            print(f"      → dress 필드 업데이트: {dress_tags_str}")
+                            # 기존 태그와 병합된 태그가 다르면 업데이트
+                            if set(normalize_tag(tag) for tag in merged_dress_tags) != set(normalize_tag(tag) for tag in existing_dress_tags):
+                                yml_data[key]['positive']['dress'] = dress_value
+                                modified_dress_count += 1
+                                if existing_dress_tags:
+                                    print(f"      → dress 필드 업데이트: 기존 {len(existing_dress_tags)}개 + 신규 {len(dress_tag_list)}개 → 총 {len(merged_dress_tags)}개 태그")
+                                else:
+                                    print(f"      → dress 필드 업데이트: {len(merged_dress_tags)}개 태그 추가")
                         else:
                             yml_data[key]['positive']['dress'] = dress_value
                             modified_dress_count += 1
-                            print(f"      → dress 필드 추가: {dress_tags_str}")
+                            print(f"      → dress 필드 추가: {len(merged_dress_tags)}개 태그")
                     elif not has_dress:
                         # dress 태그가 없지만 dress 키가 없으면 기본값 추가
                         yml_data[key]['positive']['dress'] = '{   |4::__dress__},'

@@ -14,7 +14,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
-from tag_utils import load_excluded_tags, is_tag_excluded, load_config
+from tag_utils import load_excluded_tags, is_tag_excluded, load_config, load_dress_tags, normalize_tag, remove_excluded_tags_from_string
 
 # config.yml에서 설정 로드
 config = load_config()
@@ -30,7 +30,7 @@ template = {
     'weight': 150,
     'positive': {
         'char': "1girl , ",
-        '#dress': "{ , |4::__dress__},"
+        'dress': "{   |4::__dress__},"
     }
 }
 
@@ -39,6 +39,9 @@ MAX_TAGS = 64
 
 # 제거할 태그 목록 (config.yml 파일에서 로드)
 EXCLUDED_TAGS = load_excluded_tags()
+
+# dress 필드로 이동할 태그 목록 (config.yml 파일에서 로드)
+DRESS_TAGS = load_dress_tags()
 
 def extract_ss_tag_frequency(file_path):
     """
@@ -65,15 +68,17 @@ def extract_ss_tag_frequency(file_path):
     except Exception as e:
         return None
 
-def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None):
+def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None, dress_tags=None):
     """
     ss_tag_frequency를 처리하여 정렬된 태그 문자열을 반환합니다.
     평균 이상인 태그만 기록하고, 최대 개수를 제한합니다.
+    dress 태그는 제외하고 반환합니다 (dress 필드로 이동하기 위해).
     
     Args:
         tag_frequency: ss_tag_frequency 딕셔너리
         max_tags: 최대 태그 개수 (기본값: 64)
         excluded_tags: 제거할 태그 목록 (기본값: None)
+        dress_tags: dress 태그 목록 (기본값: None, 제외하고 반환)
     
     Returns:
         정렬된 태그 문자열 (예: "1girl, 3d, belt, boots, bare shoulders")
@@ -83,6 +88,9 @@ def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None):
     
     if excluded_tags is None:
         excluded_tags = EXCLUDED_TAGS
+    
+    if dress_tags is None:
+        dress_tags = DRESS_TAGS
     
     # 1차 키가 여러개인 경우 2차의 건수를 합산
     tag_counts = defaultdict(int)
@@ -95,11 +103,16 @@ def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None):
     if not tag_counts:
         return None
     
-    # 제거할 태그 필터링 (정규식 패턴과 문자열 패턴 모두 지원)
-    tag_counts_filtered = {
-        tag: count for tag, count in tag_counts.items() 
-        if not is_tag_excluded(tag, excluded_tags)
-    }
+    # 제거할 태그 필터링 (제외 태그 및 dress 태그 제외)
+    tag_counts_filtered = {}
+    for tag, count in tag_counts.items():
+        # 제외 태그인지 확인
+        if is_tag_excluded(tag, excluded_tags):
+            continue
+        # dress 태그인지 확인 (dress 필드로 이동하므로 여기서 제외)
+        if dress_tags and is_tag_excluded(tag, dress_tags):
+            continue
+        tag_counts_filtered[tag] = count
     
     if not tag_counts_filtered:
         return None
@@ -122,6 +135,44 @@ def process_tag_frequency(tag_frequency, max_tags=64, excluded_tags=None):
     result = ", ".join(tag_names)
     
     return result
+
+def extract_dress_tags_from_tag_frequency(tag_frequency, dress_tags=None):
+    """
+    ss_tag_frequency에서 dress 태그를 추출합니다.
+    
+    Args:
+        tag_frequency: ss_tag_frequency 딕셔너리
+        dress_tags: dress 태그 목록 (기본값: None)
+    
+    Returns:
+        dress 태그 리스트
+    """
+    if not tag_frequency or not dress_tags:
+        return []
+    
+    # 1차 키가 여러개인 경우 2차의 건수를 합산
+    tag_counts = defaultdict(int)
+    
+    for first_key, second_dict in tag_frequency.items():
+        if isinstance(second_dict, dict):
+            for tag, count in second_dict.items():
+                tag_counts[tag] += count
+    
+    if not tag_counts:
+        return []
+    
+    # dress 태그 추출
+    dress_tag_list = []
+    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
+    
+    for tag, count in tag_counts.items():
+        if is_tag_excluded(tag, dress_tags):
+            normalized = normalize_tag(tag)
+            if normalized not in seen_normalized:
+                seen_normalized.add(normalized)
+                dress_tag_list.append(tag)  # 원본 태그 유지
+    
+    return dress_tag_list
 
 def process_type(type_name):
     """각 타입에 대해 누락된 키를 찾아 YML 파일에 추가"""
@@ -186,9 +237,12 @@ def process_type(type_name):
         print(f"    제외 태그 개수: {len(EXCLUDED_TAGS)}개")
     else:
         print(f"    경고: 제외 태그 목록이 비어있습니다.")
+    if DRESS_TAGS:
+        print(f"    dress 태그 개수: {len(DRESS_TAGS)}개")
     
     added_count = 0
     no_tag_count = 0
+    dress_tags_count = 0
     
     try:
         with open(yml_path, 'a', encoding='utf-8') as f:
@@ -198,37 +252,67 @@ def process_type(type_name):
                 
                 # ss_tag_frequency 추출
                 tag_frequency = extract_ss_tag_frequency(file_path)
-                sorted_tags = process_tag_frequency(tag_frequency, max_tags=MAX_TAGS, excluded_tags=EXCLUDED_TAGS)
+                
+                # char 필드용 태그 처리 (제외 태그 및 dress 태그 제외)
+                sorted_tags = process_tag_frequency(
+                    tag_frequency, 
+                    max_tags=MAX_TAGS, 
+                    excluded_tags=EXCLUDED_TAGS,
+                    dress_tags=DRESS_TAGS
+                )
+                
+                # dress 태그 추출
+                dress_tag_list = extract_dress_tags_from_tag_frequency(tag_frequency, DRESS_TAGS) if DRESS_TAGS else []
+                
+                # char 필드 처리 (중복 제거)
+                if sorted_tags:
+                    # 이미 제외 태그와 dress 태그는 필터링되었으므로, 중복만 제거
+                    filtered_char, _ = remove_excluded_tags_from_string(
+                        sorted_tags, 
+                        excluded_tags=[],  # 이미 process_tag_frequency에서 제외됨
+                        dress_tags=None    # 이미 process_tag_frequency에서 제외됨
+                    )
+                    # 필터링 결과가 비어있으면 원본 사용
+                    char_value = filtered_char if filtered_char and filtered_char.strip() else sorted_tags
+                else:
+                    # 태그가 없거나 평균 이상인 태그가 없으면 기본값 사용
+                    char_value = template["positive"]["char"].strip()
                 
                 # 키값을 따옴표로 감싸기
                 f.write(f'"{key}": # auto\n')
                 f.write(f'  weight: {template["weight"]}\n')
                 f.write(f'  positive:\n')
                 
+                # char 필드 작성
+                char_value_escaped = char_value.replace("'", "''")
+                f.write(f'    char: \'{char_value_escaped}\'\n')
+                
                 if sorted_tags:
-                    # 정렬된 태그를 char 필드에 추가
-                    # YAML에서 작은따옴표 사용 시 작은따옴표 자체를 이중으로 처리
-                    char_value = f"{sorted_tags}"
-                    # 작은따옴표가 있으면 두 개로 변경 (YAML 작은따옴표 문자열에서 이스케이프)
-                    char_value_escaped = char_value.replace("'", "''")
-                    f.write(f'    char: \'{char_value_escaped}\'\n')
                     added_count += 1
                 else:
-                    # 태그가 없거나 평균 이상인 태그가 없으면 기본값 사용
-                    default_char = template["positive"]["char"]
-                    default_char_escaped = default_char.replace("'", "''")
-                    f.write(f'    char: \'{default_char_escaped}\'\n')
                     no_tag_count += 1
                 
-                # dress 필드도 작은따옴표 이스케이프 처리
-                dress_value = template["positive"]["#dress"]
-                dress_value_escaped = dress_value.replace("'", "''")
-                f.write(f'    #dress: \'{dress_value_escaped}\'\n')
+                # dress 필드 처리
+                if dress_tag_list:
+                    # dress 태그들을 문자열로 변환
+                    dress_tags_str = ', '.join(dress_tag_list)
+                    dress_value = f'{{  {dress_tags_str} |4::__dress__}},'
+                    dress_value_escaped = dress_value.replace("'", "''")
+                    f.write(f'    dress: \'{dress_value_escaped}\'\n')
+                    dress_tags_count += 1
+                else:
+                    # dress 태그가 없으면 기본값 사용
+                    dress_value = template["positive"]["dress"]
+                    dress_value_escaped = dress_value.replace("'", "''")
+                    f.write(f'    dress: \'{dress_value_escaped}\'\n')
+                
                 f.write('\n')
         
         print(f"  [OK] {len(missing)}개의 누락된 키가 추가되었습니다.")
         print(f"    - 태그 포함: {added_count}개")
         print(f"    - 태그 없음: {no_tag_count}개")
+        if dress_tags_count > 0:
+            print(f"    - dress 태그 포함: {dress_tags_count}개")
         print(f"  추가된 키 샘플 (처음 10개):")
         for i, key in enumerate(sorted(missing)[:10], 1):
             print(f"    {i}. {key}")
