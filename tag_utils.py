@@ -91,6 +91,36 @@ def load_excluded_tags(yml_path=None):
         print(f"  오류: config.yml 파일 읽기 실패: {e}")
         return []
 
+def load_dress_tags(yml_path=None):
+    """
+    config.yml 파일에서 dress 태그 목록을 로드합니다.
+    
+    Args:
+        yml_path: yml 파일 경로 (None이면 스크립트 디렉토리의 config.yml 사용)
+    
+    Returns:
+        dress 태그 목록 리스트
+    """
+    if yml_path is None:
+        # 스크립트 파일이 있는 디렉토리 기준으로 config.yml 찾기
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        yml_path = os.path.join(script_dir, 'config.yml')
+    
+    if not os.path.exists(yml_path):
+        print(f"  경고: config.yml 파일이 존재하지 않습니다: {yml_path}")
+        return []
+    
+    try:
+        with open(yml_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+            if data and 'dress_tags' in data:
+                return data['dress_tags']
+            else:
+                return []
+    except Exception as e:
+        print(f"  오류: config.yml 파일 읽기 실패: {e}")
+        return []
+
 def load_config(yml_path=None):
     """
     config.yml 파일에서 설정을 로드합니다.

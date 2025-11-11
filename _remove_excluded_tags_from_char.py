@@ -11,7 +11,7 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
 from ruamel.yaml import YAML
-from tag_utils import load_excluded_tags, is_tag_excluded, load_config, normalize_tag
+from tag_utils import load_excluded_tags, is_tag_excluded, load_config, normalize_tag, load_dress_tags
 
 # ruamel.yaml 인스턴스 생성 (round-trip 모드로 주석 보존)
 yaml = YAML()
@@ -31,16 +31,54 @@ types = config.get('types', ['IL', 'Pony'])
 # 제거할 태그 목록 (config.yml 파일에서 로드)
 EXCLUDED_TAGS = load_excluded_tags()
 
-def remove_excluded_tags_from_string(tag_string, excluded_tags):
+# dress 필드로 이동할 태그 목록 (config.yml 파일에서 로드)
+DRESS_TAGS = load_dress_tags()
+
+def extract_dress_tags_from_string(tag_string, dress_tags):
+    """
+    태그 문자열에서 dress 태그를 추출합니다.
+    중복을 제거하고 정규화된 태그로 확인합니다.
+    
+    Args:
+        tag_string: 쉼표로 구분된 태그 문자열
+        dress_tags: dress 태그 목록
+    
+    Returns:
+        추출된 dress 태그 리스트 (중복 제거됨)
+    """
+    if not tag_string or not tag_string.strip() or not dress_tags:
+        return []
+    
+    # 쉼표로 분리하여 태그 리스트 만들기
+    tags = [tag.strip() for tag in tag_string.split(',')]
+    
+    # dress 태그 추출 (중복 제거)
+    dress_tag_list = []
+    seen_normalized = set()  # 정규화된 태그를 추적하여 중복 제거
+    
+    for tag in tags:
+        if not tag:
+            continue
+        if is_tag_excluded(tag, dress_tags):  # dress_tags에 해당하는 태그
+            normalized = normalize_tag(tag)
+            if normalized not in seen_normalized:
+                seen_normalized.add(normalized)
+                dress_tag_list.append(tag)  # 원본 태그 유지
+    
+    return dress_tag_list
+
+def remove_excluded_tags_from_string(tag_string, excluded_tags, dress_tags=None):
     """
     태그 문자열에서 제외 태그와 중복 태그를 제거합니다.
+    dress 태그도 제거할 수 있습니다.
     
     Args:
         tag_string: 쉼표로 구분된 태그 문자열 (예: "1girl, 2d, belt, smile")
         excluded_tags: 제외 태그 목록
+        dress_tags: dress 태그 목록 (제거할 태그, None이면 제거 안함)
     
     Returns:
-        (제외 태그와 중복 태그가 제거된 태그 문자열, 제거된 태그 개수)
+        (필터링된 태그 문자열, 제거된 태그 개수)
     """
     if not tag_string or not tag_string.strip():
         return tag_string, 0
@@ -59,6 +97,11 @@ def remove_excluded_tags_from_string(tag_string, excluded_tags):
         
         # 제외 태그인지 확인
         if is_tag_excluded(tag, excluded_tags):
+            removed_count += 1
+            continue
+        
+        # dress 태그인지 확인 (제거할 경우)
+        if dress_tags and is_tag_excluded(tag, dress_tags):
             removed_count += 1
             continue
         
@@ -83,18 +126,19 @@ def remove_excluded_tags_from_string(tag_string, excluded_tags):
     
     return result, removed_count
 
-def process_char_yml(yml_path, excluded_tags):
+def process_char_yml(yml_path, excluded_tags, dress_tags):
     """
     char.yml 파일을 읽어서 char 필드에서 제외 태그를 제거하고,
-    dress 키가 없으면 추가합니다.
+    dress 태그를 dress 필드로 이동하며, dress 키가 없으면 추가합니다.
     주석은 보존됩니다.
     
     Args:
         yml_path: char.yml 파일 경로
         excluded_tags: 제외 태그 목록
+        dress_tags: dress 태그 목록
     
     Returns:
-        (수정된 YAML 데이터, 수정된 키 개수, 제거된 태그 총 개수, 추가된 dress 키 개수)
+        (수정된 YAML 데이터, 수정된 키 개수, 제거된 태그 총 개수, 추가/수정된 dress 키 개수)
     """
     if not os.path.exists(yml_path):
         print(f"  경고: YML 파일이 존재하지 않습니다: {yml_path}")
@@ -113,10 +157,10 @@ def process_char_yml(yml_path, excluded_tags):
         print(f"  경고: YML 파일이 비어있습니다.")
         return None, 0, 0, 0
     
-    # 각 키의 positive.char 필드에서 제외 태그 제거 및 dress 키 추가
+    # 각 키의 positive.char 필드에서 제외 태그 제거 및 dress 태그 이동
     modified_count = 0
     total_removed_tags = 0
-    added_dress_count = 0
+    modified_dress_count = 0
     
     for key, value in yml_data.items():
         if not isinstance(value, dict):
@@ -131,27 +175,54 @@ def process_char_yml(yml_path, excluded_tags):
                 char_value = positive_dict['char']
                 
                 if isinstance(char_value, str):
-                    # 제외 태그 제거
-                    filtered_char, removed_count = remove_excluded_tags_from_string(char_value, excluded_tags)
+                    # dress 태그 추출
+                    dress_tag_list = extract_dress_tags_from_string(char_value, dress_tags) if dress_tags else []
                     
-                    if removed_count > 0:
+                    # 제외 태그 및 dress 태그 제거
+                    filtered_char, removed_count = remove_excluded_tags_from_string(
+                        char_value, excluded_tags, dress_tags
+                    )
+                    
+                    # char 필드 업데이트
+                    char_modified = False
+                    if removed_count > 0 or dress_tag_list:
                         yml_data[key]['positive']['char'] = filtered_char
+                        char_modified = True
                         modified_count += 1
                         total_removed_tags += removed_count
-                        print(f"    - {key}: {removed_count}개 태그 제거")
-            
-            # dress 키가 없으면 추가
-            if 'char' in positive_dict:
-                # dress 또는 #dress 키가 있는지 확인
-                has_dress = 'dress' in positive_dict or '#dress' in positive_dict
-                
-                if not has_dress:
-                    # dress 키 추가
-                    yml_data[key]['positive']['dress'] = '{   |4::__dress__},'
-                    added_dress_count += 1
-                    print(f"    - {key}: dress 키 추가")
+                        
+                        if dress_tag_list:
+                            print(f"    - {key}: {removed_count}개 태그 제거, {len(dress_tag_list)}개 dress 태그 이동")
+                        else:
+                            print(f"    - {key}: {removed_count}개 태그 제거")
+                    
+                    # dress 필드 처리 (char 키가 있으면 항상 체크)
+                    has_dress = 'dress' in positive_dict or '#dress' in positive_dict
+                    
+                    if dress_tag_list:
+                        # dress 태그들을 문자열로 변환
+                        dress_tags_str = ', '.join(dress_tag_list)
+                        dress_value = f'{{  {dress_tags_str} |4::__dress__}},'
+                        
+                        # dress 키가 있으면 업데이트, 없으면 추가
+                        if has_dress:
+                            yml_data[key]['positive']['dress'] = dress_value
+                            modified_dress_count += 1
+                            print(f"      → dress 필드 업데이트: {dress_tags_str}")
+                        else:
+                            yml_data[key]['positive']['dress'] = dress_value
+                            modified_dress_count += 1
+                            print(f"      → dress 필드 추가: {dress_tags_str}")
+                    elif not has_dress:
+                        # dress 태그가 없지만 dress 키가 없으면 기본값 추가
+                        yml_data[key]['positive']['dress'] = '{   |4::__dress__},'
+                        modified_dress_count += 1
+                        if not char_modified:
+                            print(f"    - {key}: dress 키 추가")
+                        else:
+                            print(f"      → dress 키 추가 (기본값)")
     
-    return yml_data, modified_count, total_removed_tags, added_dress_count
+    return yml_data, modified_count, total_removed_tags, modified_dress_count
 
 def save_char_yml(yml_path, yml_data):
     """
@@ -184,14 +255,17 @@ def process_type(type_name):
         return
     
     print(f"  제외 태그 개수: {len(EXCLUDED_TAGS)}개")
+    print(f"  dress 태그 개수: {len(DRESS_TAGS)}개")
     
     # char.yml 파일 처리
-    modified_data, modified_count, total_removed_tags, added_dress_count = process_char_yml(yml_path, EXCLUDED_TAGS)
+    modified_data, modified_count, total_removed_tags, modified_dress_count = process_char_yml(
+        yml_path, EXCLUDED_TAGS, DRESS_TAGS
+    )
     
     if modified_data is None:
         return
     
-    if modified_count == 0 and added_dress_count == 0:
+    if modified_count == 0 and modified_dress_count == 0:
         print(f"  [OK] 수정할 항목이 없습니다.")
         return
     
@@ -201,8 +275,8 @@ def process_type(type_name):
         messages = []
         if modified_count > 0:
             messages.append(f"{modified_count}개 키에서 총 {total_removed_tags}개 태그 제거")
-        if added_dress_count > 0:
-            messages.append(f"{added_dress_count}개 키에 dress 키 추가")
+        if modified_dress_count > 0:
+            messages.append(f"{modified_dress_count}개 키의 dress 필드 추가/수정")
         print(f"  [OK] {', '.join(messages)}")
     else:
         print(f"  [실패] 파일 저장에 실패했습니다.")
@@ -215,6 +289,7 @@ if __name__ == "__main__":
     print(f"작업 디렉토리: {base_dir}")
     print(f"처리할 타입: {', '.join(types)}")
     print(f"제외 태그 목록 (config.yml에서 로드): {len(EXCLUDED_TAGS)}개")
+    print(f"dress 태그 목록 (config.yml에서 로드): {len(DRESS_TAGS)}개")
     
     for type_name in types:
         process_type(type_name)
