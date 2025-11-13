@@ -1,114 +1,78 @@
 # --- 경로 설정 ---
-dataPath: ../ComfyU-auto-script_data  # 설정파일 폴더. 변경시 재실행 필요.
-base_dir: W:\ComfyUI_windows_portable  # 작업 디렉토리
-
-# --- 처리할 타입 리스트 ---
-types:
-  - IL
-  - Pony
-
-# --- 제거할 태그 목록 ---
-# 정규식 패턴 사용 가능: "/pattern/" 형태로 감싸면 정규식으로 인식됩니다.
-# 예: '/^background.*$/' (background로 시작하는 모든 태그)
-# 예: '/.*weapon.*/' (weapon을 포함하는 모든 태그)
-excluded_tags:
-  - '/cum .*/'
-  - '/from .*/'
-  - '/mole .*/'
-  - '/holding .*/'
-  - '/.* body/'
-  - '/.* lights/'
-  - '/.* penis/'
-  - '/.* armor/'
-  - '/.* horns/'
-  - '/.*hands up.*/'
-  - '/.* cum/'
-  - '/.* mouth/'
-  - '/.* background/'
-  - 'looking at viewer'
-  - 'censored'
-  - 'weapon'
-  - 'horns'
-  - 'holding'
-  - 'blush'
-  - 'night'
-  - 'doggystyle'
-  - 'sword'
-  - 'kneeling'
-  - 'clothed female nude male'
-  - 'blurry'
-  - 'armor'
-  - 'anime coloring'
-  - 'hand up'
-  - 'indoors'
-  - 'standing'
-  - '1boy'
-  - 'ass'
-  - 'nipples'
-  - 'outdoors'
-  - 'hetero'
-  - 'cum'
-  - 'ahoge'
-  - 'sitting'
-  - 'one eye closed'
-  - 'breasts out'
-  - 'large breasts'
-  - 'mole'
-  - 'mosaic censoring'
-  - 'smile'
-  - 'vaginal'
-  - 'penis'
-  - 'pussy'
-  - 'tongue'
-  - 'sex'
-  - 'closed eyes'
-  - 'solo'
-  - 'tongue out'
-  - 'sky'
-  - 'flower'
-  - 'multiple girls'
-  - 'microphone'
-  - 'singing'
-  - 'cup'
-  - 'cloud'
-  - 'music'
-  - 'tree'
-  - 'pov'
-  - 'solo focus'
-  - 'nude'
-  - 'arm grab'
-
-# --- dress 필드로 이동할 태그 목록 ---
-# 이 태그들은 char 필드에서 제거되고 dress 필드에 '{  태그들 |4::__dress__},' 형태로 추가됩니다.
-# 정규식 패턴 사용 가능: "/pattern/" 형태로 감싸면 정규식으로 인식됩니다.
-dress_tags:
-  - 'hat'
-  - 'top'
-  - '/.*sleeves.*/'
-  - '/.*jewelry.*/'
-  - '/.*thighhighs.*/'
-  - '/.* top.*/'
-  - '/.* hat.*/'
-  - '/.* socks.*/'
-  - '/.* cap.*/'
-  - '/.*underwear.*/'
-  - '/.*nurse.*/'
-  - '/.*footwear.*/'
-  - '/.*gloves.*/'
-  - '/.*boot.*/'
-  - '/.*heels.*/'
-  - '/.*sleeveless.*/'
-  - '/.*thigh.*/'
-  - '/.*belt.*/'
-  - '/.*necklace.*/'
-  - '/.*dress.*/'
-  - '/.*skirt.*/'
-  - '/.*shoulders.*/'
-  - '/.*piercing.*/'
-  - '/.*shirt.*/'
-  - '/.*uniform.*/'
-  - '/.*clothing.*/'
-  - '/.*outfit.*/'
-  - '/.*panties.*/'
-  - '/.* cleavage.*/'
-  - '/.* jacket.*/'
+CheckpointPath: ../ComfyUI/models/checkpoints # Checkpoint 폴더. 변경시 재실행 필요.
+LoraPath: ../ComfyUI/models/Loras # Lora 폴더. 변경시 재실행 필요.
+LoraEtcPath: etc # LoraPath / etc 폴더. 변경시 재실행 필요. 하위폴더는 인식 안함.
+LoraCharPath: char # LoraPath 안의 char 폴더. 변경시 재실행 필요. 하위폴더는 인식 안함.
+CheckpointTypes: # Checkpoint 및 Lora 종류. 뒤의 숫자는 사용할 가중치. 키 추가시 재실행 필요. 가중치는 실시간 반영
+  IL: 7
+  Pony: 1
+safetensorsFile: '*.safetensors' # Checkpoint 및 Lora 파일 확장자.
+workflow_api: workflow_api.json # ComfyUI 로 보낼 workflow api 파일. dataPath+CheckpointTypes에 넣음
+url: http://127.0.0.1:8188/prompt # ComfyUI 로 보낼 url. ComfyUI가 실행중이어야 함
+# --- 반복 설정 ---
+# CheckpointLoop * CharLoop * QueueLoop 횟수만큼 무한 반복
+CheckpointLoop: 10 # Checkpoint 반복 횟수. 한번 돌때마다 Char 값이 바뀜
+CharLoop: 3 # Char 반복 횟수. 한번 돌때마다 Lora 값이 바뀜
+queueLoop: 2 # Char 반복 횟수
+# --- char 적용 설정 ---
+noCharPer: 0.125 # Char 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noCharPer: 0.5 # Char 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noCharPer: 0.125 # Char 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noCharPer: 0.0625 # Char 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noCharPer: 0.0 # Char 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noCharWildcard: # Char 파일을 안쓸 경우 Wildcard 설정
+  positive:
+    char: '/**/{__danbooru_female_character_my__|__danbooru_female_character_my_simple__|__hair/hairstyles-female__|__char_lora__},/**/'
+  negative:
+    char: ''
+noLoraPer: 0.5 # Lora 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noLoraPer: 0.25 # Lora 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noLoraPer: 0.125 # Lora 파일을 안쓸 확률. 안쓸경우 CharWeightPer 무시됨
+noLoraWildcard: # Lora 파일을 안쓸 경우 Wildcard 설정
+  positive:
+    noLora: '/**/__action__,/**/'
+  negative:
+    noLora: ''
+# --- Weight 설정 ---
+CheckpointWeightPer: 0.75 # WeightCheckpoint.yml 파일을 쓸 확률
+CharWeightPer: 0.75 # char weight를 쓸 확률. 가중치는 WeightChar.yml 파일과 [dataPath]/[CheckpointType]\lora\*.yml파일의 weight 값을 씀
+CharWeightPer: 0.875 # char weight를 쓸 확률. 가중치는 WeightChar.yml 파일과 [dataPath]/[CheckpointType]\lora\*.yml파일의 weight 값을 씀
+CharWeightDefault : 100 # [dataPath]/[CheckpointType]/lora/*.Yml 에 weight 값이 없을 경우 기본값.
+LoraWeightPer: 0.75 # lora weight를 쓸 확률. 가중치는 WeightLora.yml 파일과 [dataPath]/[CheckpointType]\lora\*.yml파일의 weight 값을 씀 
+# --- 랜덤 설정 ---
+shuffleWildcard: # Wildcard를 섞을 여부. shuffleWildcardPrint이 True일 경우 섞기 전과 후를 출력함
+  true: 1
+  false: 1
+noSaveImage1: true
+# --- 콘솔 출력 설정 ---
+checkpointYmlPrint: false # dataPath/CheckpointType/Checkpoint/*.Yml 를 가져온 값 출력 여부
+loraYmlPrint: false # dataPath/CheckpointType/lora/*.Yml 를 가져온 값 출력 여부
+setupWorkflowPrint: true # dataPath/CheckpointType/setupWorkflow.yml 출력 여부
+setupWorkflowPrint: false # dataPath/CheckpointType/setupWorkflow.yml 출력 여부
+setupWildcardPrint: false # dataPath/CheckpointType/setupWildcard.yml 출력 여부
+LoraChangeWarnPrint: false # LoraChange 과정중 경고 출력 여부
+LoraChangePrint: false # LoraChange 과정중 와일드카드 관련 출력 여부
+#WorkflowPrint: true # ComfyUI로 보낼기 직전 workflow_api 출력 여부
+shuffleWildcardPrint: false # shuffle Wildcard 전후 출력 여부
+setTivePrint: false # SetTive 처리 과정 출력 여부
+setWildcardDicPrint: false # 와일드 카드 관련 최종 처리 과정 출력 여부
+setWildcardTivePrint: false # 와일드 카드 관련 최종 처리 과정 출력 여부
+setWildcardPrint: false # 와일드 카드 관련 최종 처리 과정 출력 여부
+CallbackPrint: false # 실시간 파일 변경시 로그 출력
+# --- SetSetupWorkflowToWorkflowApi 설정 ---
+# workflow_api에 setupWorkflow.yml의 내용을 넣을때 제외할 노드
+excludeNode:
+- CheckpointLoaderSimple
+- KSampler
+- CLIPTextEncodeP
+- CLIPTextEncodeN
+- VAEDecode
+- SaveImage1
+- SaveImage2
+- positiveWildcard
+- negativeWildcard
+- PreviewImage24
+- PreviewImage25
+- PreviewImage26
+# --- 수정 여부 확인 ---
+#수정 안해서 작동 안시킴: true # 수정 했으면 이 라인은 지우거나 False로 변경하세요. True로 되어 있으면 작동 안함
